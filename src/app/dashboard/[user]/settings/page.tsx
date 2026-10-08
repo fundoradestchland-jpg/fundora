@@ -1,15 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BrandGlyph } from "@/components/fundora-brand";
-import { RequestWorkflowPanel } from "@/components/request-workflow-panel";
 import { LogoutButton } from "@/components/logout-button";
-import { DashboardInsights } from "@/components/dashboard-insights";
-import { KycVerificationCard } from "@/components/kyc-verification-card";
-import { AssignedTasksNotice } from "@/components/assigned-tasks-notice";
 import { VirtualCardManager } from "@/components/virtual-card-manager";
+import { WithdrawalDetailsManager } from "@/components/withdrawal-details-manager";
+import { KycVerificationCard } from "@/components/kyc-verification-card";
 import { getSession } from "@/lib/server-auth";
 
-export default async function DashboardUserPage({
+export default async function DashboardSettingsPage({
   params,
 }: {
   params: Promise<{ user: string }>;
@@ -30,6 +28,7 @@ export default async function DashboardUserPage({
         <div className="nav-links">
           <Link href="/">Accueil</Link>
           <Link href={`/dashboard/${user}`}>Dashboard</Link>
+          <Link href={`/dashboard/${user}/settings`} aria-current="page">Paramètres</Link>
         </div>
 
         <LogoutButton />
@@ -42,11 +41,8 @@ export default async function DashboardUserPage({
               <BrandGlyph />
             </div>
 
-            <nav className="sidebar-nav" aria-label="Navigation du dashboard">
-              <Link href="/">Accueil</Link>
-              <Link href="#demandes">Demandes</Link>
-              <Link href="/dons">Dons</Link>
-              <Link href="#transactions">Transactions</Link>
+            <nav className="sidebar-nav" aria-label="Navigation du compte">
+              <Link href={`/dashboard/${user}`}>Retour au dashboard</Link>
               <Link href={`/dashboard/${user}/settings`}>Paramètres</Link>
             </nav>
 
@@ -57,14 +53,12 @@ export default async function DashboardUserPage({
             <header className="dashboard-topbar">
               <div>
                 <span className="eyebrow">Mon compte</span>
-                <h2>Bonjour {session.name.split(" ")[0]}</h2>
+                <h2>Paramètres du compte</h2>
               </div>
             </header>
 
-            <AssignedTasksNotice />
-            <VirtualCardManager accountName={session.name} dashboardHref={`/dashboard/${session.user}`} />
-            <DashboardInsights />
-            <RequestWorkflowPanel />
+            <VirtualCardManager accountName={session.name} dashboardHref={`/dashboard/${session.user}`} settingsOnly />
+            <WithdrawalDetailsManager />
           </div>
         </div>
       </section>

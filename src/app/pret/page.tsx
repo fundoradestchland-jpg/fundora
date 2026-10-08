@@ -1,123 +1,61 @@
 import Link from "next/link";
-import { BrandGlyph } from "@/components/fundora-brand";
+import { SiteNav } from "@/components/site-nav";
 
-const loanOffers = [
-  {
-    title: "Prêt personnel rapide",
-    amount: "€ 5.000",
-    term: "24 mois",
-    rate: "4,9 %",
-    status: "Disponible",
-    type: "available",
-    description: "Pour couvrir un besoin immédiat, un projet familial ou un remplacement de budget mensuel.",
-    progress: 38,
-  },
-  {
-    title: "Prêt pour projet professionnel",
-    amount: "€ 12.000",
-    term: "36 mois",
-    rate: "5,4 %",
-    status: "En validation",
-    type: "pending",
-    description: "Pour financer l’achat de matériel, des investissements, ou la reprise d’activité.",
-    progress: 62,
-  },
-  {
-    title: "Prêt social et d’urgence",
-    amount: "€ 3.200",
-    term: "18 mois",
-    rate: "3,8 %",
-    status: "Résolu",
-    type: "resolved",
-    description: "Pour les situations de besoin urgent avec accompagnement social et vérification renforcée.",
-    progress: 100,
-  },
+const requiredDocuments = [
+  "Une pièce d’identité en cours de validité",
+  "Des justificatifs de revenus et de dépenses",
+  "Des relevés bancaires récents",
 ];
 
 export default function LoanPage() {
   return (
     <main className="page-shell loan-page">
-      <nav className="topbar" aria-label="Navigation principale">
-        <div className="brand" aria-label="Fundora brand">
-          <BrandGlyph />
-          <span className="brand-word">Fundora</span>
-        </div>
+      <SiteNav current="pret" />
 
-        <div className="nav-links">
-          <a href="/">Accueil</a>
-          <a href="/pret">Prêt</a>
-          <a href="/dons">Dons</a>
-          <a href="/dashboard">Dashboard</a>
-          <a href="/login">Connexion</a>
-        </div>
-
-        <Link href="/pret/demande" className="nav-button">
-          Demander un prêt
-        </Link>
-      </nav>
-
-      <section className="donation-hero">
-        <span className="eyebrow">Prêts disponibles</span>
-        <h1>Un financement clair pour chaque besoin.</h1>
+      <section className="donation-hero loan-application-hero">
+        <span className="eyebrow">Demande de prêt</span>
+        <h1>Présentez votre projet et faites votre demande de financement.</h1>
         <p>
-          Fundora évalue votre dossier, vérifie les justificatifs, puis determine le montant et le
-          plan de remboursement adapté à votre situation. Vous pourrez suivre chaque étape dans votre
-          dashboard.
+          Complétez vos informations, indiquez votre besoin et joignez les justificatifs utiles.
+          L’équipe Fundora étudiera ensuite votre dossier et vous informera de la suite dans votre espace.
         </p>
-
-        <div className="donation-filters">
-          <span className="filter-pill active">Prêts ouverts</span>
-          <span className="filter-pill">En validation</span>
-          <span className="filter-pill">Prêts résolus</span>
-        </div>
+        <Link href="/pret/demande" className="primary-button">Faire une demande de prêt</Link>
       </section>
 
-      <section className="donation-grid">
-        {loanOffers.map((loan) => (
-          <article key={loan.title} className="donation-card">
-            <div className="donation-visual visual-education" aria-label={loan.title} />
+      <section className="loan-application-info" aria-label="Informations sur la demande de prêt">
+        <article className="panel loan-info-card">
+          <span className="eyebrow">Votre dossier</span>
+          <h2>Les informations à préparer</h2>
+          <p>Vous devrez indiquer votre identité et vos coordonnées, le montant souhaité, la durée envisagée, l’objet du prêt et votre situation financière.</p>
+        </article>
 
-            <span className="eyebrow">Financement</span>
-            <h3>{loan.title}</h3>
+        <article className="panel loan-info-card">
+          <span className="eyebrow">Documents à joindre</span>
+          <h2>Documents obligatoires à joindre</h2>
+          <ul>
+            {requiredDocuments.map((document) => <li key={document}>{document}</li>)}
+          </ul>
+          <p>Chaque document dispose de son propre emplacement dans le formulaire. Vous devrez joindre les trois pour envoyer votre demande.</p>
+        </article>
 
-            <div className="meta-row">
-              <div className="meta-box">
-                <span>Montant</span>
-                <strong>{loan.amount}</strong>
-              </div>
-              <div className="meta-box">
-                <span>Durée</span>
-                <strong>{loan.term}</strong>
-              </div>
-            </div>
+        <article className="panel loan-info-card">
+          <span className="eyebrow">Frais éventuels</span>
+          <h2>Une information avant tout engagement</h2>
+          <p>
+            Certains documents ou démarches peuvent entraîner de petits frais. Le cas échéant,
+            leur montant et leur motif vous seront communiqués dans votre espace avant toute étape
+            concernée. Le dépôt de la demande ne déclenche aucun paiement automatique.
+          </p>
+        </article>
+      </section>
 
-            <div className="meta-row">
-              <div className="meta-box">
-                <span>Taux</span>
-                <strong>{loan.rate}</strong>
-              </div>
-              <div className="meta-box">
-                <span>Statut</span>
-                <strong>{loan.status}</strong>
-              </div>
-            </div>
-
-            <p>{loan.description}</p>
-
-            <div className="donation-progress">
-              <div className="progress-track" aria-label="Progression du prêt">
-                <span className="progress-fill" style={{ width: `${loan.progress}%` }} />
-              </div>
-            </div>
-
-            <div className="donation-footer">
-              <span className={`status-badge ${loan.type}`}>{loan.status}</span>
-              <Link href="/pret/demande" className="primary-button small">
-                Faire une demande
-              </Link>
-            </div>
-          </article>
-        ))}
+      <section className="loan-application-next">
+        <div>
+          <span className="eyebrow">Prêt à commencer ?</span>
+          <h2>Votre demande se fait en quelques étapes.</h2>
+          <p>Vous pourrez relire les informations et les documents avant de transmettre votre dossier.</p>
+        </div>
+        <Link href="/pret/demande" className="primary-button">Commencer ma demande</Link>
       </section>
     </main>
   );

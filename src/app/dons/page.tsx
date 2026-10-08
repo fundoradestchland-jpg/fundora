@@ -1,124 +1,51 @@
-import Link from "next/link";
-import { BrandGlyph } from "@/components/fundora-brand";
+import { SiteNav } from "@/components/site-nav";
+import { DonationCampaignListings } from "@/components/donation-campaign-listings";
+import { StatusFilters, ApplicationListings } from "@/components/application-listings";
+import { listPublicDonationCampaigns, listPublicApplications, type ApplicationStatus } from "@/lib/public-data";
+import { donationCategories, type DonationCategory } from "@/lib/donation-categories";
 
-const donations = [
-  {
-    title: "Aide pour l’éducation des enfants",
-    category: "Éducation",
-    goal: "€ 6.500",
-    raised: "€ 4.300",
-    beneficiaries: "42 familles",
-    status: "Disponible",
-    type: "available",
-    description:
-      "Un programme pour financer les frais scolaires, les fournitures et le suivi scolaire de jeunes enfants dans des familles précaires.",
-    progress: 66,
-    image: "visual-education",
-  },
-  {
-    title: "Soins de santé pour familles vulnérables",
-    category: "Santé",
-    goal: "€ 9.000",
-    raised: "€ 8.100",
-    beneficiaries: "31 personnes",
-    status: "Presque terminé",
-    type: "pending",
-    description:
-      "Des consultations, médicaments essentiels et accompagnement médical pour familles sans couverture sociale suffisante.",
-    progress: 90,
-    image: "visual-health",
-  },
-  {
-    title: "Aide à la mobilité et au logement",
-    category: "Logement",
-    goal: "€ 12.000",
-    raised: "€ 12.000",
-    beneficiaries: "18 ménages",
-    status: "Résolu",
-    type: "resolved",
-    description:
-      "Ce don a déjà été entièrement attribué à plusieurs familles afin de soutenir leur déplacement, leur sécurité et leur logement.",
-    progress: 100,
-    image: "visual-family",
-  },
-];
+export const dynamic = "force-dynamic";
 
-export default function DonationsPage() {
+export default async function DonationsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ statut?: string; categorie?: string }>;
+}) {
+  const { statut, categorie } = await searchParams;
+  const status = statut === "pending" || statut === "approved" || statut === "rejected" ? statut as ApplicationStatus : "all";
+  const category = donationCategories.some((item) => item.value === categorie) ? categorie as DonationCategory : undefined;
+  const [campaigns, applications] = await Promise.all([
+    listPublicDonationCampaigns(category),
+    listPublicApplications("donation", status),
+  ]);
+
   return (
     <main className="page-shell donation-page">
-      <nav className="topbar" aria-label="Navigation principale">
-        <div className="brand" aria-label="Fundora brand">
-          <BrandGlyph />
-          <span className="brand-word">Fundora</span>
-        </div>
-
-        <div className="nav-links">
-          <a href="/">Accueil</a>
-          <a href="/dons">Dons</a>
-          <a href="/dashboard">Dashboard</a>
-          <a href="/login">Connexion</a>
-        </div>
-
-        <Link href="/admin/dons" className="nav-button">
-          Admin
-        </Link>
-      </nav>
-
+      <SiteNav current="dons" />
       <section className="donation-hero">
-        <span className="eyebrow">Dons disponibles</span>
-        <h1>Des besoins concrets, des aides concrètes.</h1>
+        <span className="eyebrow">Dons enregistrés</span>
+        <h1>Les besoins réellement déposés, suivis dossier par dossier.</h1>
         <p>
-          Les dons publiés sur Fundora sont examinés par l’équipe avant d’être mis à disposition.
-          Chaque demande est évaluée selon le besoin réel, le contexte du projet et le montant qui
-          peut être attribué à la personne ou au foyer concerné.
+          Les cartes ci-dessous viennent de PostgreSQL. Le nom et l’e-mail du demandeur restent
+          privés ; seuls l’objet, le lieu, les montants et le statut sont publics.
         </p>
-
-        <div className="donation-filters">
-          <span className="filter-pill active">Disponibles</span>
-          <span className="filter-pill">En cours</span>
-          <span className="filter-pill">Résolus</span>
+        <StatusFilters kindPath="/dons" current={status} />
+      </section>
+      <DonationCampaignListings campaigns={campaigns} selectedCategory={category} />
+      <section className="published-campaigns-heading applicant-donation-heading">
+        <div>
+          <span className="eyebrow">Demandes des utilisateurs</span>
+          <h2>Suivi des demandes de dons</h2>
         </div>
       </section>
-
-      <section className="donation-grid">
-        {donations.map((donation) => (
-          <article key={donation.title} className="donation-card">
-            <div className={`donation-visual ${donation.image}`} aria-label={donation.title} />
-
-            <span className="eyebrow">{donation.category}</span>
-            <h3>{donation.title}</h3>
-
-            <div className="meta-row">
-              <div className="meta-box">
-                <span>Cible</span>
-                <strong>{donation.goal}</strong>
-              </div>
-              <div className="meta-box">
-                <span>Collecté</span>
-                <strong>{donation.raised}</strong>
-              </div>
-            </div>
-
-            <div className="donation-progress">
-              <div className="donation-stats">
-                <strong>{donation.beneficiaries}</strong>
-              </div>
-              <div className="progress-track" aria-label="Progression du don">
-                <span className="progress-fill" style={{ width: `${donation.progress}%` }} />
-              </div>
-            </div>
-
-            <p>{donation.description}</p>
-
-            <div className="donation-footer">
-              <span className={`status-badge ${donation.type}`}>{donation.status}</span>
-              <Link href="/dons/demande" className="primary-button small">
-                Faire une demande
-              </Link>
-            </div>
-          </article>
-        ))}
-      </section>
+      <ApplicationListings
+        applications={applications}
+        kind="donation"
+        emptyTitle="Aucun don dans cette vue"
+        emptyText="Créez un compte demandeur et envoyez une demande : elle s’affichera ici dès son enregistrement."
+        actionHref="/dons/demande"
+        actionLabel="Déposer une demande"
+      />
     </main>
   );
 }

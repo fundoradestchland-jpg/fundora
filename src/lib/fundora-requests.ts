@@ -2,6 +2,7 @@ export type RequestKind = "Don" | "Prêt";
 export type ReviewStatus = "En attente" | "Validée" | "Refusée";
 export type DocumentStatus = "À vérifier" | "Validé" | "À corriger";
 export type TaskStatus = "À faire" | "Envoyé" | "Validé" | "À corriger";
+export type PaymentProofStatus = "Aucune" | "À vérifier" | "Validé" | "À corriger";
 
 export type RequestDocument = {
   id: string;
@@ -17,12 +18,17 @@ export type PublishedTask = {
   title: string;
   instructions: string;
   fee: number;
+  paymentUrl: string;
   fileName: string;
   fileDataUrl: string;
   status: TaskStatus;
   reviewNote: string;
   responseFileName: string;
   responseDataUrl: string;
+  paymentProofFileName: string;
+  paymentProofDataUrl: string;
+  paymentProofStatus: PaymentProofStatus;
+  paymentProofNote: string;
 };
 
 export type FundoraRequest = {
