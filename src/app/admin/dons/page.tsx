@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { BrandGlyph } from "@/components/fundora-brand";
+import { SupportChat } from "@/components/support-chat";
 import { donationCategories, donationCategoryLabel } from "@/lib/donation-categories";
 
 type DonationCampaign = {
@@ -176,6 +177,7 @@ export default function AdminDonationsPage() {
 
   return (
     <main className="page-shell admin-donation-page">
+      <SupportChat isAdmin />
       <nav className="topbar" aria-label="Navigation admin">
         <div className="brand" aria-label="Fundora brand">
           <BrandGlyph />

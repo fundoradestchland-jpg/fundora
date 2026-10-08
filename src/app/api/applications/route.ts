@@ -12,6 +12,11 @@ const loanDocumentLabels: Record<string, string> = {
   income_expenses: "Justificatifs de revenus et de dépenses",
   bank_statements: "Relevés bancaires",
 };
+const donationDocumentLabels: Record<string, string> = {
+  identity: "Pièce d’identité",
+  need: "Justificatif du besoin",
+  income: "Justificatif de revenus",
+};
 
 function parseFile(value: unknown) {
   if (!value || typeof value !== "object") return null;
@@ -186,7 +191,11 @@ export async function POST(request: Request) {
         [
           randomUUID(),
           applicationId,
-          kind === "loan" ? `${loanDocumentLabels[document.documentType]} - ${document.name}` : document.name,
+          kind === "loan"
+            ? `${loanDocumentLabels[document.documentType]} - ${document.name}`
+            : donationDocumentLabels[document.documentType]
+              ? `${donationDocumentLabels[document.documentType]} - ${document.name}`
+              : document.name,
           document.contentType,
           document.content.length,
           `postgres:${applicationId}:${document.name}`,

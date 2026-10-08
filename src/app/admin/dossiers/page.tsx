@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { BrandGlyph } from "@/components/fundora-brand";
+import { SupportChat } from "@/components/support-chat";
 import { useFundoraRequests } from "@/lib/request-api";
 import type { RequestKind } from "@/lib/fundora-requests";
 
@@ -12,7 +13,7 @@ type FilterKind = "Toutes" | RequestKind;
 export default function AdminApplicationsPage() {
   const router = useRouter();
   const [authorized, setAuthorized] = useState<boolean | null>(null);
-  const { requests, loading, error, mutate } = useFundoraRequests();
+  const { requests, loading, error, mutate, refresh } = useFundoraRequests();
   const [selectedId, setSelectedId] = useState("");
   const [filter, setFilter] = useState<FilterKind>("Toutes");
   const [taskTitle, setTaskTitle] = useState("");
@@ -21,6 +22,7 @@ export default function AdminApplicationsPage() {
   const [taskPaymentUrl, setTaskPaymentUrl] = useState("");
   const [taskFile, setTaskFile] = useState<File | null>(null);
   const [message, setMessage] = useState("");
+  const [taskFeedback, setTaskFeedback] = useState<{ text: string; isError: boolean } | null>(null);
   const [busyAction, setBusyAction] = useState("");
   const [decisionDraft, setDecisionDraft] = useState<{ id: string; amount: string; note: string } | null>(null);
   const [taskNotes, setTaskNotes] = useState<Record<string, string>>({});
@@ -41,6 +43,15 @@ export default function AdminApplicationsPage() {
       });
     return () => { active = false; };
   }, [router]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      void refresh().catch((reason: unknown) => {
+        setMessage(reason instanceof Error ? reason.message : "Actualisation des dossiers impossible.");
+      });
+    }, 20_000);
+    return () => window.clearInterval(interval);
+  }, [refresh]);
 
   const filteredRequests = useMemo(
     () => requests.filter((request) => filter === "Toutes" || request.kind === filter),
@@ -115,18 +126,27 @@ export default function AdminApplicationsPage() {
 
   const publishTask = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!selectedRequest || !taskTitle.trim() || busyAction) return;
+    if (busyAction) return;
+    if (!selectedRequest) {
+      setTaskFeedback({ text: "Sélectionnez d’abord un dossier demandeur.", isError: true });
+      return;
+    }
+    if (!taskTitle.trim()) {
+      setTaskFeedback({ text: "Saisissez le titre de la tâche à envoyer.", isError: true });
+      return;
+    }
     setBusyAction("publish-task");
     setMessage("");
+    setTaskFeedback(null);
 
     const fee = Number(taskFee);
     if (!Number.isFinite(fee) || fee < 0) {
-      setMessage("Indiquez un montant de frais valide.");
+      setTaskFeedback({ text: "Indiquez un montant de frais valide.", isError: true });
       setBusyAction("");
       return;
     }
     if (fee > 0 && !taskPaymentUrl.trim()) {
-      setMessage("Ajoutez le lien de paiement sécurisé correspondant aux frais.");
+      setTaskFeedback({ text: "Ajoutez le lien de paiement sécurisé correspondant aux frais.", isError: true });
       setBusyAction("");
       return;
     }
@@ -134,19 +154,19 @@ export default function AdminApplicationsPage() {
       try {
         const parsedPaymentUrl = new URL(taskPaymentUrl);
         if (parsedPaymentUrl.protocol !== "https:" || parsedPaymentUrl.username || parsedPaymentUrl.password) {
-          setMessage("Le lien de paiement doit être une adresse HTTPS sécurisée.");
+          setTaskFeedback({ text: "Le lien de paiement doit être une adresse HTTPS sécurisée.", isError: true });
           setBusyAction("");
           return;
         }
       } catch {
-        setMessage("Saisissez un lien de paiement HTTPS valide.");
+        setTaskFeedback({ text: "Saisissez un lien de paiement HTTPS valide.", isError: true });
         setBusyAction("");
         return;
       }
     }
 
     if (taskFile && taskFile.size > 400_000) {
-      setMessage("Le document joint doit faire 400 Ko maximum.");
+      setTaskFeedback({ text: "Le document joint doit faire 400 Ko maximum.", isError: true });
       setBusyAction("");
       return;
     }
@@ -174,8 +194,9 @@ export default function AdminApplicationsPage() {
       setTaskPaymentUrl("");
       setTaskFile(null);
       setMessage("La tâche, les instructions et le lien éventuel sont publiés dans l’espace du demandeur.");
+      setTaskFeedback({ text: "Tâche envoyée au demandeur. Elle est maintenant disponible dans son espace.", isError: false });
     } catch (reason) {
-      setMessage(reason instanceof Error ? reason.message : "Publication impossible.");
+      setTaskFeedback({ text: reason instanceof Error ? reason.message : "Publication impossible.", isError: true });
     } finally {
       setBusyAction("");
     }
@@ -194,6 +215,7 @@ export default function AdminApplicationsPage() {
 
   return (
     <main className="page-shell admin-review-page">
+      <SupportChat isAdmin />
       <nav className="topbar" aria-label="Navigation admin">
         <div className="brand"><BrandGlyph /></div>
         <div className="nav-links">
@@ -241,7 +263,10 @@ export default function AdminApplicationsPage() {
                 className={`admin-request-row ${selectedRequest?.id === request.id ? "selected" : ""}`}
                 key={request.id}
                 type="button"
-                onClick={() => setSelectedId(request.id)}
+                onClick={() => {
+                  setSelectedId(request.id);
+                  setTaskFeedback(null);
+                }}
               >
                 <span className={`request-kind-mark ${request.kind === "Don" ? "donation" : "loan"}`}>{request.kind}</span>
                 <strong>{request.fullName}</strong>
@@ -326,28 +351,96 @@ export default function AdminApplicationsPage() {
                   </div>
                   <label className="field"><span>Lien de paiement sécurisé (HTTPS) {Number(taskFee) > 0 ? "(obligatoire avec des frais)" : "(facultatif)"}</span><input type="url" value={taskPaymentUrl} onChange={(event) => setTaskPaymentUrl(event.target.value)} placeholder="https://…" required={Number(taskFee) > 0} /><small>Le demandeur verra ce lien dans son espace dès la publication de la tâche et pourra déposer la preuve de paiement séparément.</small></label>
                   <button className="primary-button" type="submit" disabled={Boolean(busyAction)}>{busyAction === "publish-task" ? "Envoi au demandeur…" : "Envoyer la tâche au demandeur"}</button>
+                  {taskFeedback && (
+                    <p className={`admin-task-feedback ${taskFeedback.isError ? "error" : "success"}`} role={taskFeedback.isError ? "alert" : "status"}>
+                      {taskFeedback.text}
+                    </p>
+                  )}
                 </form>
                 {selectedRequest.tasks.length > 0 && (
                   <ul className="admin-published-list">
-                    {selectedRequest.tasks.map((task) => <li key={task.id}>
-                      <div><strong>{task.title}</strong><span>{task.fee.toLocaleString("fr-FR")} € · {task.status}</span></div>
-                      {task.fileName && <a href={task.fileDataUrl} download={task.fileName}>Document publié : {task.fileName}</a>}
-                      {task.paymentUrl && <a href={task.paymentUrl} target="_blank" rel="noopener noreferrer">Lien de paiement configuré</a>}
-                      {task.responseFileName && <a href={task.responseDataUrl} download={task.responseFileName}>Réponse du demandeur : {task.responseFileName}</a>}
-                      {task.paymentProofFileName && <a href={task.paymentProofDataUrl} download={task.paymentProofFileName}>Preuve de paiement reçue : {task.paymentProofFileName}</a>}
-                      {task.paymentProofStatus !== "Aucune" && <span className={`review-badge ${task.paymentProofStatus === "Validé" ? "validee" : task.paymentProofStatus === "À corriger" ? "refusee" : "en-attente"}`}>Paiement : {task.paymentProofStatus}</span>}
-                      {task.paymentProofStatus === "À vérifier" && <div className="admin-task-review-actions">
-                        <input aria-label={`Commentaire de paiement pour ${task.title}`} placeholder="Commentaire facultatif" value={paymentNotes[task.id] ?? task.paymentProofNote} onChange={(event) => setPaymentNotes((current) => ({ ...current, [task.id]: event.target.value }))} />
-                        <button className="secondary-button small" type="button" disabled={Boolean(busyAction)} onClick={() => void reviewPaymentProof(task.id, "À corriger")}>{busyAction === `payment:${task.id}` ? "Enregistrement…" : "Refuser la preuve"}</button>
-                        <button className="primary-button small" type="button" disabled={Boolean(busyAction)} onClick={() => void reviewPaymentProof(task.id, "Validé")}>{busyAction === `payment:${task.id}` ? "Enregistrement…" : "Valider le paiement"}</button>
-                      </div>}
-                      {task.status === "Envoyé" && <div className="admin-task-review-actions">
-                        <input aria-label={`Commentaire pour ${task.title}`} placeholder="Commentaire de vérification" value={taskNotes[task.id] ?? task.reviewNote} onChange={(event) => setTaskNotes((current) => ({ ...current, [task.id]: event.target.value }))} />
-                        <button className="secondary-button small" type="button" disabled={Boolean(busyAction)} onClick={() => void reviewTask(task.id, "À corriger", taskNotes[task.id] ?? task.reviewNote)}>{busyAction === `task:${task.id}` ? "Enregistrement…" : "Demander une correction"}</button>
-                        <button className="primary-button small" type="button" disabled={Boolean(busyAction)} onClick={() => void reviewTask(task.id, "Validé", taskNotes[task.id] ?? task.reviewNote)}>{busyAction === `task:${task.id}` ? "Enregistrement…" : "Valider la pièce"}</button>
-                      </div>}
-                      {task.reviewNote && task.status !== "Envoyé" && <span className="admin-task-review-note">Note : {task.reviewNote}</span>}
-                    </li>)}
+                    {selectedRequest.tasks.map((task) => (
+                      <li className="admin-published-task" key={task.id}>
+                        <div className="admin-published-task-heading">
+                          <div>
+                            <strong>{task.title}</strong>
+                            <span>{task.fee.toLocaleString("fr-FR")} € de frais annoncés</span>
+                          </div>
+                          <span className={`review-badge ${task.status === "Validé" ? "validee" : task.status === "À corriger" ? "refusee" : task.status === "Envoyé" ? "en-attente" : "a-faire"}`}>
+                            {task.status === "Validé" ? "Travail validé" : task.status === "Envoyé" ? "À vérifier" : task.status}
+                          </span>
+                        </div>
+
+                        {task.fileName && (
+                          <div className="admin-task-file">
+                            <strong>Document transmis au demandeur</strong>
+                            <span>{task.fileName}</span>
+                            <div className="admin-task-file-actions">
+                              <a href={task.fileDataUrl} target="_blank" rel="noopener noreferrer">Voir le document</a>
+                              <a href={task.fileDataUrl} download={task.fileName}>Télécharger</a>
+                            </div>
+                          </div>
+                        )}
+
+                        {task.paymentUrl && (
+                          <a className="admin-task-payment-link" href={task.paymentUrl} target="_blank" rel="noopener noreferrer">
+                            Ouvrir le lien de paiement configuré
+                          </a>
+                        )}
+
+                        {task.responseFileName && (
+                          <div className={`admin-task-file ${task.status === "Validé" ? "approved" : task.status === "À corriger" ? "correction" : "pending"}`}>
+                            <strong>{task.status === "Validé" ? "Travail validé par l’administration" : task.status === "À corriger" ? "Correction demandée" : "Travail reçu · en attente de validation"}</strong>
+                            <span>Document du demandeur : {task.responseFileName}</span>
+                            <div className="admin-task-file-actions">
+                              <a href={task.responseDataUrl} target="_blank" rel="noopener noreferrer">Voir le travail</a>
+                              <a href={task.responseDataUrl} download={task.responseFileName}>Télécharger le travail</a>
+                            </div>
+                          </div>
+                        )}
+
+                        {task.reviewNote && <p className="admin-task-review-note">Note envoyée au demandeur : {task.reviewNote}</p>}
+
+                        {task.paymentProofFileName && (
+                          <div className="admin-task-file">
+                            <strong>Preuve de paiement · {task.paymentProofStatus}</strong>
+                            <span>{task.paymentProofFileName}</span>
+                            <div className="admin-task-file-actions">
+                              <a href={task.paymentProofDataUrl} target="_blank" rel="noopener noreferrer">Voir la preuve</a>
+                              <a href={task.paymentProofDataUrl} download={task.paymentProofFileName}>Télécharger la preuve</a>
+                            </div>
+                          </div>
+                        )}
+
+                        {task.paymentProofStatus !== "Aucune" && (
+                          <span className={`review-badge ${task.paymentProofStatus === "Validé" ? "validee" : task.paymentProofStatus === "À corriger" ? "refusee" : "en-attente"}`}>
+                            Paiement : {task.paymentProofStatus}
+                          </span>
+                        )}
+
+                        {task.paymentProofStatus === "À vérifier" && (
+                          <div className="admin-task-review-panel">
+                            <strong>Vérifier la preuve de paiement</strong>
+                            <div className="admin-task-review-actions">
+                              <input aria-label={`Commentaire de paiement pour ${task.title}`} placeholder="Commentaire facultatif" value={paymentNotes[task.id] ?? task.paymentProofNote} onChange={(event) => setPaymentNotes((current) => ({ ...current, [task.id]: event.target.value }))} />
+                              <button className="secondary-button small" type="button" disabled={Boolean(busyAction)} onClick={() => void reviewPaymentProof(task.id, "À corriger")}>{busyAction === `payment:${task.id}` ? "Enregistrement…" : "Demander une nouvelle preuve"}</button>
+                              <button className="primary-button small" type="button" disabled={Boolean(busyAction)} onClick={() => void reviewPaymentProof(task.id, "Validé")}>{busyAction === `payment:${task.id}` ? "Enregistrement…" : "Valider le paiement"}</button>
+                            </div>
+                          </div>
+                        )}
+
+                        {task.status === "Envoyé" && (
+                          <div className="admin-task-review-panel">
+                            <strong>Vérifier le travail envoyé</strong>
+                            <div className="admin-task-review-actions">
+                              <input aria-label={`Commentaire pour ${task.title}`} placeholder="Commentaire de vérification (facultatif)" value={taskNotes[task.id] ?? task.reviewNote} onChange={(event) => setTaskNotes((current) => ({ ...current, [task.id]: event.target.value }))} />
+                              <button className="secondary-button small" type="button" disabled={Boolean(busyAction)} onClick={() => void reviewTask(task.id, "À corriger", taskNotes[task.id] ?? task.reviewNote)}>{busyAction === `task:${task.id}` ? "Enregistrement…" : "Demander une correction"}</button>
+                              <button className="primary-button small" type="button" disabled={Boolean(busyAction)} onClick={() => void reviewTask(task.id, "Validé", taskNotes[task.id] ?? task.reviewNote)}>{busyAction === `task:${task.id}` ? "Enregistrement…" : "Valider le travail"}</button>
+                            </div>
+                          </div>
+                        )}
+                      </li>
+                    ))}
                   </ul>
                 )}
               </section>

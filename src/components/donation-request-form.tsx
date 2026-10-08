@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
 import { serializeFiles, type RequestDocument } from "@/lib/fundora-requests";
@@ -28,6 +28,14 @@ type ApplicantSession = {
   user: string;
 };
 
+const donationDocumentTypes = [
+  { value: "identity", label: "Pièce d’identité", description: "Carte d’identité, passeport ou titre de séjour." },
+  { value: "need", label: "Justificatif du besoin", description: "Facture, devis, certificat ou document lié à votre demande." },
+  { value: "income", label: "Justificatif de revenus", description: "Bulletin de salaire, attestation ou justificatif de ressources." },
+] as const;
+
+type UploadedDonationDocument = RequestDocument & { documentType: string };
+
 export function DonationRequestForm({ initialCategory }: { initialCategory?: string }) {
   const initialCategoryLabel = donationCategories.find((item) => item.value === initialCategory)?.label ?? "Éducation";
   const [currentStep, setCurrentStep] = useState(0);
@@ -35,7 +43,7 @@ export function DonationRequestForm({ initialCategory }: { initialCategory?: str
   const [reference, setReference] = useState("");
   const [applicant, setApplicant] = useState<ApplicantSession | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [uploadedDocuments, setUploadedDocuments] = useState<RequestDocument[]>([]);
+  const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDonationDocument[]>([]);
   const [uploadError, setUploadError] = useState("");
   const [form, setForm] = useState({
     fullName: "",
@@ -101,13 +109,6 @@ export function DonationRequestForm({ initialCategory }: { initialCategory?: str
 
   const isLastStep = currentStep === steps.length - 1;
 
-  const amountSuggestion = useMemo(() => {
-    if (form.requestType.includes("Éducation")) return "€ 1.250";
-    if (form.requestType.includes("Santé")) return "€ 1.800";
-    if (form.requestType.includes("Logement")) return "€ 2.400";
-    return "€ 1.000";
-  }, [form.requestType]);
-
   const nextStep = () => {
     setUploadError("");
     if (currentStep === 0 && (
@@ -142,6 +143,22 @@ export function DonationRequestForm({ initialCategory }: { initialCategory?: str
     setUploadedDocuments((current) => current.filter((document) => document.id !== documentId));
   };
 
+  const handleDocumentUpload = async (documentType: string, files: FileList | null, input: HTMLInputElement) => {
+    if (!files?.length) return;
+    try {
+      const documents = await serializeFiles(files);
+      setUploadedDocuments((current) => [
+        ...current,
+        ...documents.map((document) => ({ ...document, documentType })),
+      ]);
+      setUploadError("");
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : "Fichier illisible.");
+    } finally {
+      input.value = "";
+    }
+  };
+
   const handleSubmit = async () => {
     if (!form.consent) {
       setUploadError("Confirmez l’exactitude des informations avant l’envoi.");
@@ -161,7 +178,13 @@ export function DonationRequestForm({ initialCategory }: { initialCategory?: str
         subject: form.requestType,
         amountRequested: form.amount,
         details: `Date de naissance : ${form.birthDate}\n${form.description}\nUtilisation : ${form.project}\nRevenu : ${form.monthlyIncome}\nSituation : ${form.household}\nUrgence : ${form.urgency}\nPièces attendues : ${form.documents}`,
-        documents: uploadedDocuments.map(({ id: documentId, name, size, dataUrl }) => ({ id: documentId, name, size, dataUrl })),
+        documents: uploadedDocuments.map(({ id: documentId, name, size, dataUrl, documentType }) => ({
+          id: documentId,
+          name,
+          size,
+          dataUrl,
+          documentType,
+        })),
       });
       setReference(id.slice(0, 8).toUpperCase());
       setSubmitted(true);
@@ -194,8 +217,8 @@ export function DonationRequestForm({ initialCategory }: { initialCategory?: str
                 <strong>#{reference}</strong>
               </div>
               <div className="confirmation-box">
-                <span>Montant estimé</span>
-                <strong>{amountSuggestion}</strong>
+                <span>Montant demandé</span>
+                <strong>{Number(form.amount).toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}</strong>
               </div>
               <div className="confirmation-box">
                 <span>Statut</span>
@@ -346,40 +369,45 @@ export function DonationRequestForm({ initialCategory }: { initialCategory?: str
               <div className="form-grid">
                 <div className="document-guidance field wide">
                   <strong>Justificatifs conseillés</strong>
-                  <p>{form.documents}</p>
-                  <small>Vous pouvez joindre un ou plusieurs fichiers pour appuyer votre demande.</small>
+                  <p>Ajoutez les documents correspondant à votre situation. Vous pouvez sélectionner plusieurs fichiers dans chaque espace.</p>
                 </div>
 
-                <div className="field field-upload wide">
-                  <span>Ajouter des justificatifs</span>
-                  <div className="upload-stack">
-                    <input
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      multiple
-                      onChange={async (event) => {
-                        try {
-                          const files = await serializeFiles(event.target.files ?? []);
-                          setUploadedDocuments((current) => [...current, ...files]);
-                          setUploadError("");
-                          event.target.value = "";
-                        } catch (error) {
-                          setUploadError(error instanceof Error ? error.message : "Fichier illisible.");
-                        }
-                      }}
-                    />
-                  </div>
-                  <small>PDF, JPG ou PNG, 400 Ko maximum par fichier.</small>
-                  {uploadedDocuments.length > 0 && (
-                    <ul className="uploaded-document-list" aria-label="Fichiers ajoutés">
-                      {uploadedDocuments.map((document) => (
-                        <li key={document.id}>
-                          <span>{document.name}</span>
-                          <button type="button" onClick={() => removeDocument(document.id)} aria-label={`Retirer ${document.name}`}>Retirer</button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                <div className="document-upload-grid field wide">
+                  {donationDocumentTypes.map((documentType) => {
+                    const documents = uploadedDocuments.filter((document) => document.documentType === documentType.value);
+                    return (
+                      <div className="document-upload-group" key={documentType.value}>
+                        <label className="document-upload-card">
+                          <span className="document-upload-heading">
+                            <strong>{documentType.label}</strong>
+                            <small>{documentType.description}</small>
+                          </span>
+                          <input
+                            className="document-upload-input"
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            multiple
+                            aria-label={`Ajouter un ou plusieurs fichiers : ${documentType.label}`}
+                            onChange={(event) => {
+                              void handleDocumentUpload(documentType.value, event.target.files, event.target);
+                            }}
+                          />
+                          <small className="document-upload-hint">Cliquez pour choisir un ou plusieurs fichiers.</small>
+                        </label>
+                        {documents.length > 0 && (
+                          <ul className="uploaded-document-list" aria-label={`Fichiers ajoutés : ${documentType.label}`}>
+                            {documents.map((document) => (
+                              <li key={document.id}>
+                                <span>{document.name}</span>
+                                <button type="button" onClick={() => removeDocument(document.id)} aria-label={`Retirer ${document.name}`}>Retirer</button>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    );
+                  })}
+                  <small className="field-hint">PDF, JPG ou PNG, 400 Ko maximum par fichier. Ajoutez au moins un justificatif.</small>
                 </div>
               </div>
             </div>
@@ -405,16 +433,12 @@ export function DonationRequestForm({ initialCategory }: { initialCategory?: str
                   <strong>{form.requestType}</strong>
                 </div>
                 <div className="summary-row">
-                  <span>Montant demandé</span>
-                  <strong>{form.amount} €</strong>
+                  <span>Montant demandé (à étudier)</span>
+                  <strong>{Number(form.amount).toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}</strong>
                 </div>
                 <div className="summary-row">
-                  <span>Montant estimé par Fundora</span>
-                  <strong>{amountSuggestion}</strong>
-                </div>
-                <div className="summary-row">
-                  <span>Documents requis</span>
-                  <strong>{form.documents}</strong>
+                  <span>Justificatifs joints</span>
+                  <strong>{uploadedDocuments.length} fichier{uploadedDocuments.length > 1 ? "s" : ""}</strong>
                 </div>
               </div>
 

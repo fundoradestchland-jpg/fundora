@@ -69,14 +69,21 @@ export async function POST(request: Request) {
     const imageFileName = typeof body.imageFileName === "string" ? body.imageFileName.trim().slice(0, 255) : "";
     if (!imageFileName) throw new Error("Le nom du fichier photo est invalide.");
 
-    const result = await database.query(
-      `INSERT INTO fundora_donation_campaigns
-        (id, title, categories, target_amount, description, image_file_name, image_content_type, image_data, created_by)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-       RETURNING *`,
-      [randomUUID(), title, categories, targetAmount, description, imageFileName, match[1], imageData, session.userId]
-    );
-    return NextResponse.json(serializeCampaign(result.rows[0]), { status: 201 });
+    let campaign: Record<string, unknown>;
+    try {
+      const result = await database.query(
+        `INSERT INTO fundora_donation_campaigns
+          (id, title, categories, target_amount, description, image_file_name, image_content_type, image_data, created_by)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+         RETURNING *`,
+        [randomUUID(), title, categories, targetAmount, description, imageFileName, match[1], imageData, session.userId]
+      );
+      campaign = result.rows[0];
+    } catch (error) {
+      console.error("Donation campaign creation failed", (error as NodeJS.ErrnoException).code ?? "insert_error");
+      return NextResponse.json({ error: "Impossible d’enregistrer la campagne. Vérifiez la configuration de la base de données." }, { status: 503 });
+    }
+    return NextResponse.json(serializeCampaign(campaign), { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Publication impossible.";
     return NextResponse.json({ error: message }, { status: 400 });

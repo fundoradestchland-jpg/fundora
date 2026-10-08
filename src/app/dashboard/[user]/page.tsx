@@ -7,6 +7,7 @@ import { DashboardInsights } from "@/components/dashboard-insights";
 import { KycVerificationCard } from "@/components/kyc-verification-card";
 import { AssignedTasksNotice } from "@/components/assigned-tasks-notice";
 import { VirtualCardManager } from "@/components/virtual-card-manager";
+import { SupportChat } from "@/components/support-chat";
 import { getSession } from "@/lib/server-auth";
 
 export default async function DashboardUserPage({
@@ -22,6 +23,7 @@ export default async function DashboardUserPage({
 
   return (
     <main className="page-shell dashboard-page">
+      <SupportChat />
       <nav className="topbar" aria-label="Navigation du dashboard">
         <div className="brand" aria-label="Fundora brand">
           <BrandGlyph />

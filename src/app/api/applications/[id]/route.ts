@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
+import pg from "pg";
 import { database } from "@/lib/db";
 import { getSession } from "@/lib/server-auth";
 
@@ -38,9 +39,10 @@ export async function PATCH(request: Request, context: RouteContext<"/api/applic
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Connexion requise." }, { status: 401 });
   const { id } = await context.params;
-  const client = await database.connect();
+  let client: pg.PoolClient | undefined;
 
   try {
+    client = await database.connect();
     const body = await request.json();
     await client.query("BEGIN");
     const result = await client.query("SELECT id, user_id FROM fundora_applications WHERE id = $1 FOR UPDATE", [id]);
@@ -165,10 +167,15 @@ export async function PATCH(request: Request, context: RouteContext<"/api/applic
     await client.query("COMMIT");
     return NextResponse.json({ ok: true });
   } catch (error) {
-    await client.query("ROLLBACK").catch(() => {});
+    if (client) await client.query("ROLLBACK").catch(() => {});
+    const code = error instanceof Error ? (error as NodeJS.ErrnoException).code : undefined;
+    if (code && /^[0-9A-Z]{5}$/.test(code)) {
+      console.error("Application update failed", { operation: "PATCH", code });
+      return NextResponse.json({ error: "Le serveur n’a pas pu enregistrer la tâche. Vérifiez les journaux du déploiement ou réessayez plus tard." }, { status: 503 });
+    }
     const message = error instanceof Error ? error.message : "Mise à jour impossible.";
     return NextResponse.json({ error: message }, { status: 400 });
   } finally {
-    client.release();
+    client?.release();
   }
 }

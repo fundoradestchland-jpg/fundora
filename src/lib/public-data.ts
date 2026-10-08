@@ -131,8 +131,9 @@ export async function listPublicDonationCampaigns(category?: DonationCategory) {
       imageDataUrl: `data:${String(row.image_content_type)};base64,${(row.image_data as Buffer).toString("base64")}`,
       createdAt: new Date(String(row.created_at)).toISOString(),
     })) satisfies PublicDonationCampaign[];
-  } catch {
-    return [] as PublicDonationCampaign[];
+  } catch (error) {
+    console.error("Public donation campaigns query failed", (error as NodeJS.ErrnoException).code ?? "query_error");
+    throw new Error("Les campagnes de dons sont temporairement indisponibles.");
   }
 }
 

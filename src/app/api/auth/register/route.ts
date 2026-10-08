@@ -40,7 +40,8 @@ export async function POST(request: Request) {
     return NextResponse.json({
       user: { email: session.email, name: session.name, role: session.role, user: session.user },
     }, { status: 201 });
-  } catch {
+  } catch (error) {
+    console.error("Registration failed", (error as NodeJS.ErrnoException).code ?? "registration_error");
     return NextResponse.json({ error: "L’inscription est indisponible pour le moment." }, { status: 503 });
   }
 }

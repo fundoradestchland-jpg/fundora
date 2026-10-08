@@ -86,19 +86,21 @@ export async function getSession(): Promise<FundoraSession | null> {
   const actual = Buffer.from(signature);
   if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) return null;
 
+  let cookieSession: FundoraSession;
   try {
-    const cookieSession = JSON.parse(Buffer.from(payload, "base64url").toString()) as FundoraSession;
-    if (cookieSession.expiresAt < Date.now() || !cookieSession.userId) return null;
-    const result = await retryTransientDatabaseRead(() => database.query(
-      "SELECT id, email, full_name, role FROM fundora_users WHERE id = $1 LIMIT 1",
-      [cookieSession.userId]
-    ));
-    const user = result.rows[0] as StoredUser | undefined;
-    if (!user) return null;
-    return sessionFromUser(user, cookieSession.expiresAt);
+    cookieSession = JSON.parse(Buffer.from(payload, "base64url").toString()) as FundoraSession;
   } catch {
     return null;
   }
+  if (cookieSession.expiresAt < Date.now() || !cookieSession.userId) return null;
+
+  const result = await retryTransientDatabaseRead(() => database.query(
+    "SELECT id, email, full_name, role FROM fundora_users WHERE id = $1 LIMIT 1",
+    [cookieSession.userId]
+  ));
+  const user = result.rows[0] as StoredUser | undefined;
+  if (!user) return null;
+  return sessionFromUser(user, cookieSession.expiresAt);
 }
 
 export async function setSessionCookie(session: FundoraSession) {

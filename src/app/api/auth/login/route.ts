@@ -15,7 +15,8 @@ export async function POST(request: Request) {
 
     await setSessionCookie(session);
     return NextResponse.json({ user: { email: session.email, name: session.name, role: session.role, user: session.user } });
-  } catch {
+  } catch (error) {
+    console.error("Login failed", (error as NodeJS.ErrnoException).code ?? "login_error");
     return NextResponse.json({ error: "La connexion est indisponible pour le moment." }, { status: 503 });
   }
 }

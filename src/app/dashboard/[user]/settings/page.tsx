@@ -5,6 +5,7 @@ import { LogoutButton } from "@/components/logout-button";
 import { VirtualCardManager } from "@/components/virtual-card-manager";
 import { WithdrawalDetailsManager } from "@/components/withdrawal-details-manager";
 import { KycVerificationCard } from "@/components/kyc-verification-card";
+import { SupportChat } from "@/components/support-chat";
 import { getSession } from "@/lib/server-auth";
 
 export default async function DashboardSettingsPage({
@@ -20,6 +21,7 @@ export default async function DashboardSettingsPage({
 
   return (
     <main className="page-shell dashboard-page">
+      <SupportChat />
       <nav className="topbar" aria-label="Navigation du dashboard">
         <div className="brand" aria-label="Fundora brand">
           <BrandGlyph />

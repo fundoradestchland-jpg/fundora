@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { BrandGlyph } from "@/components/fundora-brand";
+import { SupportChat } from "@/components/support-chat";
 
 type FinanceUser = { id: string; name: string; email: string; cardId: string | null; balance: number };
 type PendingWithdrawal = {
@@ -120,6 +121,7 @@ export default function AdminFinancesPage() {
 
   return (
     <main className="page-shell admin-review-page">
+      <SupportChat isAdmin />
       <nav className="topbar" aria-label="Navigation admin">
         <div className="brand"><BrandGlyph /></div>
         <div className="nav-links">

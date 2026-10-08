@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { FundoraRequest } from "@/lib/fundora-requests";
 
 export async function createApplication(input: {
@@ -31,13 +31,13 @@ export function useFundoraRequests() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     const response = await fetch("/api/applications", { cache: "no-store" });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error ?? "Lecture des demandes impossible.");
     setRequests(result as FundoraRequest[]);
     setError("");
-  };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -62,12 +62,17 @@ export function useFundoraRequests() {
   const mutate = async (id: string, operation: string, values: Record<string, unknown>) => {
     const response = await fetch(`/api/applications/${id}`, {
       method: "PATCH",
+      credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ operation, ...values }),
     });
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error ?? "Mise à jour impossible.");
-    await refresh();
+    const result = await response.json().catch(() => null);
+    if (!response.ok) throw new Error(result?.error ?? `Mise à jour impossible (erreur ${response.status}).`);
+    try {
+      await refresh();
+    } catch {
+      throw new Error("La mise à jour a été enregistrée, mais la liste n’a pas pu être actualisée. Rechargez la page avant de réessayer.");
+    }
   };
 
   return { requests, loading, error, refresh, mutate };
