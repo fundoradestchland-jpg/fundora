@@ -78,11 +78,15 @@ function LoginForm() {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error ?? "Opération impossible.");
 
-      localStorage.setItem("fundora_session", JSON.stringify(result.user));
+      try {
+        localStorage.setItem("fundora_session", JSON.stringify(result.user));
+      } catch (storageError) {
+        console.error("Session cache could not be saved", storageError);
+      }
       window.dispatchEvent(new Event("fundora-session-updated"));
 
       const destination = redirectPath ?? (result.user.role === "admin" ? "/admin/dossiers" : `/dashboard/${result.user.user}`);
-      router.push(destination);
+      window.location.assign(destination);
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "Opération impossible.");
     } finally {
@@ -179,7 +183,7 @@ function LoginForm() {
 
             {error ? <p className="auth-error">{error}</p> : null}
 
-            <button type="submit" className="primary-button login-button">
+            <button type="submit" className="primary-button login-button" disabled={submitting}>
               {submitting ? "Traitement…" : mode === "login" ? "Se connecter" : "Créer mon compte"}
             </button>
           </form>
