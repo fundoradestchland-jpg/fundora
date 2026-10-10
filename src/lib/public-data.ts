@@ -88,6 +88,28 @@ export async function getPlatformStats(): Promise<PlatformStats | null> {
   }
 }
 
+export async function getPublicDonationTotals(): Promise<{
+  attributedAmount: number;
+  attributedRequests: number;
+} | null> {
+  try {
+    const result = await database.query(`
+      SELECT
+        COALESCE(SUM(amount_approved), 0)::float AS attributed_amount,
+        COUNT(*)::int AS attributed_requests
+      FROM fundora_applications
+      WHERE kind = 'donation' AND status = 'approved'
+    `);
+    return {
+      attributedAmount: Number(result.rows[0]?.attributed_amount ?? 0),
+      attributedRequests: Number(result.rows[0]?.attributed_requests ?? 0),
+    };
+  } catch (error) {
+    console.error("Failed to load public donation totals:", error);
+    return null;
+  }
+}
+
 export async function listPublicApplications(kind: ApplicationKind, status?: ApplicationStatus | "all") {
   try {
     const filters = ["kind = $1"];

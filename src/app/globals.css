@@ -1360,6 +1360,34 @@ img {
   letter-spacing: -0.05em;
 }
 
+.donation-allocation-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 20px;
+  padding: 20px 24px;
+  border: 1px solid rgba(15, 47, 114, 0.1);
+  border-radius: 20px;
+  background: linear-gradient(120deg, rgba(232, 242, 255, 0.9), rgba(255, 255, 255, 0.9));
+}
+
+.donation-allocation-summary div {
+  display: grid;
+  gap: 6px;
+}
+
+.donation-allocation-summary strong {
+  font-size: clamp(1.7rem, 4vw, 2.4rem);
+  letter-spacing: -0.05em;
+}
+
+.donation-allocation-summary p {
+  max-width: 360px;
+  margin: 0;
+  color: var(--muted);
+}
+
 .campaign-category-filters,
 .campaign-category-badges {
   display: flex;
@@ -5176,6 +5204,12 @@ img {
     min-width: 0;
     padding: 17px;
     border-radius: 20px;
+  }
+
+  .donation-allocation-summary {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 18px;
   }
 
   .donation-visual {

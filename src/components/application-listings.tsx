@@ -54,7 +54,7 @@ export function ApplicationListings({
                 <strong>{formatEuro(application.amountRequested)}</strong>
               </div>
               <div className="meta-box">
-                <span>{kind === "donation" ? "Attribué" : "Approuvé"}</span>
+                <span>{kind === "donation" ? "Attribué à cette demande" : "Approuvé"}</span>
                 <strong>{approved ? formatEuro(application.amountApproved ?? 0) : "—"}</strong>
               </div>
             </div>
