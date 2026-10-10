@@ -9,7 +9,6 @@ export const runtime = "nodejs";
 const maxFileBytes = 400_000;
 const loanDocumentLabels: Record<string, string> = {
   identity: "Pièce d’identité",
-  income_expenses: "Justificatifs de revenus et de dépenses",
   bank_statements: "Relevés bancaires",
 };
 const donationDocumentLabels: Record<string, string> = {
@@ -171,7 +170,7 @@ export async function POST(request: Request) {
       const submittedDocumentTypes = new Set(documents.map((document) => document.documentType));
       if (Object.keys(loanDocumentLabels).some((documentType) => !submittedDocumentTypes.has(documentType)) ||
           documents.length !== Object.keys(loanDocumentLabels).length) {
-        return NextResponse.json({ error: "Joignez les trois justificatifs obligatoires : pièce d’identité, revenus et dépenses, relevés bancaires." }, { status: 400 });
+        return NextResponse.json({ error: "Joignez les deux justificatifs obligatoires : pièce d’identité et relevés bancaires." }, { status: 400 });
       }
     }
     const applicationId = randomUUID();

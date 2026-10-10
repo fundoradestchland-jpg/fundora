@@ -9,7 +9,6 @@ import { createApplication } from "@/lib/request-api";
 const steps = ["Profil", "Budget", "Documents", "Validation"];
 const requiredDocuments = [
   { id: "identity", label: "Pièce d’identité en cours de validité" },
-  { id: "income_expenses", label: "Justificatifs de revenus et de dépenses" },
   { id: "bank_statements", label: "Relevés bancaires récents" },
 ] as const;
 type LoanDocumentType = typeof requiredDocuments[number]["id"];
@@ -32,7 +31,6 @@ export default function LoanRequestPage() {
   const [submitting, setSubmitting] = useState(false);
   const [uploadedDocuments, setUploadedDocuments] = useState<Record<LoanDocumentType, RequestDocument | null>>({
     identity: null,
-    income_expenses: null,
     bank_statements: null,
   });
   const [uploadError, setUploadError] = useState("");
@@ -46,9 +44,8 @@ export default function LoanRequestPage() {
     loanType: "Prêt personnel rapide",
     amount: "",
     monthlyIncome: "",
-    monthlyExpenses: "",
     purpose: "",
-    loanTerm: "24 mois",
+    loanTerm: "24",
     consent: false,
   });
 
@@ -78,7 +75,7 @@ export default function LoanRequestPage() {
   }, [form.amount]);
   const repaymentEstimate = useMemo(() => {
     const principal = Number(form.amount);
-    const numberOfPayments = Number.parseInt(form.loanTerm, 10);
+    const numberOfPayments = Number(form.loanTerm);
     if (!Number.isFinite(principal) || principal <= 0 || !Number.isFinite(numberOfPayments) || numberOfPayments <= 0) {
       return null;
     }
@@ -107,13 +104,13 @@ export default function LoanRequestPage() {
       !form.purpose.trim() ||
       !Number.isFinite(Number(form.amount)) || Number(form.amount) <= 0 ||
       !Number.isFinite(Number(form.monthlyIncome)) || Number(form.monthlyIncome) < 0 ||
-      !Number.isFinite(Number(form.monthlyExpenses)) || Number(form.monthlyExpenses) < 0
+      !Number.isInteger(Number(form.loanTerm)) || Number(form.loanTerm) <= 0
     )) {
-      setUploadError("Indiquez un montant, vos revenus, vos dépenses et l’objet du prêt.");
+      setUploadError("Indiquez un montant, vos revenus, une durée en mois et l’objet du prêt.");
       return;
     }
     if (currentStep === 2 && requiredDocuments.some((document) => !uploadedDocuments[document.id])) {
-      setUploadError("Joignez un fichier dans chacun des trois emplacements obligatoires.");
+      setUploadError("Joignez un fichier dans chacun des deux emplacements obligatoires.");
       return;
     }
     setCurrentStep((step) => Math.min(step + 1, steps.length - 1));
@@ -133,7 +130,7 @@ export default function LoanRequestPage() {
   const handleSubmit = async () => {
     if (requiredDocuments.some((document) => !uploadedDocuments[document.id])) {
       setCurrentStep(2);
-      setUploadError("Joignez un fichier dans chacun des trois emplacements obligatoires.");
+      setUploadError("Joignez un fichier dans chacun des deux emplacements obligatoires.");
       return;
     }
     setSubmitting(true);
@@ -148,7 +145,7 @@ export default function LoanRequestPage() {
         country: form.country,
         subject: form.loanType,
         amountRequested: form.amount,
-        details: `Date de naissance : ${form.birthDate}\n${form.purpose}\nDurée : ${form.loanTerm}\nTaux annuel indicatif : 2 %\nMensualité estimée hors frais : ${repaymentEstimate ? formatEuro(repaymentEstimate.monthlyPayment) : "non calculée"}\nTotal à rembourser estimé : ${repaymentEstimate ? formatEuro(repaymentEstimate.totalRepayment) : "non calculé"}\nIntérêts estimés : ${repaymentEstimate ? formatEuro(repaymentEstimate.totalInterest) : "non calculés"}\nRevenu mensuel : ${formatEuro(form.monthlyIncome)}\nDépenses mensuelles : ${formatEuro(form.monthlyExpenses)}\nDocuments transmis : ${requiredDocuments.map(({ id, label }) => `${label} (${uploadedDocuments[id]?.name ?? ""})`).join(", ")}`,
+        details: `Date de naissance : ${form.birthDate}\n${form.purpose}\nDurée : ${form.loanTerm} mois\nTaux annuel indicatif : 2 %\nMensualité estimée hors frais : ${repaymentEstimate ? formatEuro(repaymentEstimate.monthlyPayment) : "non calculée"}\nTotal à rembourser estimé : ${repaymentEstimate ? formatEuro(repaymentEstimate.totalRepayment) : "non calculé"}\nIntérêts estimés : ${repaymentEstimate ? formatEuro(repaymentEstimate.totalInterest) : "non calculés"}\nRevenu mensuel : ${formatEuro(form.monthlyIncome)}\nDocuments transmis : ${requiredDocuments.map(({ id, label }) => `${label} (${uploadedDocuments[id]?.name ?? ""})`).join(", ")}`,
         documents: requiredDocuments.map(({ id, label }) => {
           const document = uploadedDocuments[id];
           if (!document) throw new Error(`Le document requis « ${label} » manque.`);
@@ -288,17 +285,9 @@ export default function LoanRequestPage() {
                   <input type="number" min="0" step="0.01" value={form.monthlyIncome} onChange={(e) => handleChange("monthlyIncome", e.target.value)} required />
                 </label>
                 <label className="field">
-                  <span>Dépenses mensuelles (€)</span>
-                  <input type="number" min="0" step="0.01" value={form.monthlyExpenses} onChange={(e) => handleChange("monthlyExpenses", e.target.value)} required />
-                </label>
-                <label className="field">
                   <span>Durée</span>
-                  <select value={form.loanTerm} onChange={(e) => handleChange("loanTerm", e.target.value)}>
-                    <option>12 mois</option>
-                    <option>18 mois</option>
-                    <option>24 mois</option>
-                    <option>36 mois</option>
-                  </select>
+                  <input type="number" min="1" step="1" value={form.loanTerm} onChange={(e) => handleChange("loanTerm", e.target.value)} required />
+                  <small>Durée souhaitée en mois</small>
                 </label>
                 <label className="field">
                   <span>Objet du prêt</span>
@@ -338,7 +327,7 @@ export default function LoanRequestPage() {
           {currentStep === 2 && (
             <div className="request-step">
               <h2>Pièces justificatives</h2>
-              <p>Joignez obligatoirement un fichier dans chacun des trois emplacements. Formats acceptés : PDF, JPG ou PNG ; 400 Ko maximum par fichier.</p>
+              <p>Joignez obligatoirement un fichier dans chacun des deux emplacements. Formats acceptés : PDF, JPG ou PNG ; 400 Ko maximum par fichier.</p>
               <div className="loan-document-upload-grid">
                 {requiredDocuments.map((requiredDocument) => {
                   const uploaded = uploadedDocuments[requiredDocument.id];
@@ -406,12 +395,8 @@ export default function LoanRequestPage() {
                   <strong>{formatEuro(form.monthlyIncome)}</strong>
                 </div>
                 <div className="summary-row">
-                  <span>Dépenses mensuelles</span>
-                  <strong>{formatEuro(form.monthlyExpenses)}</strong>
-                </div>
-                <div className="summary-row">
                   <span>Durée</span>
-                  <strong>{form.loanTerm}</strong>
+                  <strong>{form.loanTerm} mois</strong>
                 </div>
                 <div className="summary-row">
                   <span>Taux annuel indicatif</span>
@@ -428,10 +413,6 @@ export default function LoanRequestPage() {
                 <div className="summary-row">
                   <span>Pièce d’identité</span>
                   <strong>{uploadedDocuments.identity?.name ?? "Non jointe"}</strong>
-                </div>
-                <div className="summary-row">
-                  <span>Revenus et dépenses</span>
-                  <strong>{uploadedDocuments.income_expenses?.name ?? "Non joints"}</strong>
                 </div>
                 <div className="summary-row">
                   <span>Relevés bancaires</span>

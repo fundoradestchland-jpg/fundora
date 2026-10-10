@@ -3,7 +3,6 @@ import { SiteNav } from "@/components/site-nav";
 
 const requiredDocuments = [
   "Une pièce d’identité en cours de validité",
-  "Des justificatifs de revenus et de dépenses",
   "Des relevés bancaires récents",
 ];
 
@@ -26,7 +25,7 @@ export default function LoanPage() {
         <article className="panel loan-info-card">
           <span className="eyebrow">Votre dossier</span>
           <h2>Les informations à préparer</h2>
-          <p>Vous devrez indiquer votre identité et vos coordonnées, le montant souhaité, la durée envisagée, l’objet du prêt et votre situation financière.</p>
+          <p>Vous devrez indiquer votre identité et vos coordonnées, le montant souhaité, la durée souhaitée en mois, l’objet du prêt et votre situation financière.</p>
         </article>
 
         <article className="panel loan-info-card">
@@ -35,7 +34,7 @@ export default function LoanPage() {
           <ul>
             {requiredDocuments.map((document) => <li key={document}>{document}</li>)}
           </ul>
-          <p>Chaque document dispose de son propre emplacement dans le formulaire. Vous devrez joindre les trois pour envoyer votre demande.</p>
+          <p>Chaque document dispose de son propre emplacement dans le formulaire. Vous devrez joindre les deux pour envoyer votre demande.</p>
         </article>
 
         <article className="panel loan-info-card">
