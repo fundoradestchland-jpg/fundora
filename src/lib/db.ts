@@ -5,7 +5,14 @@ const { Pool } = pg;
 const globalForDatabase = globalThis as typeof globalThis & { fundoraPool?: pg.Pool };
 const sslRootCertificate = process.env.DATABASE_SSL_ROOT_CERT;
 const ssl = sslRootCertificate
-  ? { ca: readFileSync(sslRootCertificate, "utf8"), rejectUnauthorized: true }
+  ? (() => {
+      try {
+        return { ca: readFileSync(sslRootCertificate, "utf8"), rejectUnauthorized: true };
+      } catch {
+        console.warn("DATABASE_SSL_ROOT_CERT is set but the certificate file could not be read. Falling back to default TLS settings.");
+        return undefined;
+      }
+    })()
   : undefined;
 
 export const database = globalForDatabase.fundoraPool ?? new Pool({

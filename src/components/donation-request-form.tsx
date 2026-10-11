@@ -28,8 +28,15 @@ type ApplicantSession = {
   user: string;
 };
 
-export function DonationRequestForm({ initialCategory }: { initialCategory?: string }) {
+export function DonationRequestForm({
+  initialCategory,
+  initialAmount,
+}: {
+  initialCategory?: string;
+  initialAmount?: number;
+}) {
   const initialCategoryLabel = donationCategories.find((item) => item.value === initialCategory)?.label ?? "Éducation";
+  const fixedAmount = typeof initialAmount === "number" && Number.isFinite(initialAmount) && initialAmount > 0 ? initialAmount : null;
   const [currentStep, setCurrentStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [reference, setReference] = useState("");
@@ -43,7 +50,7 @@ export function DonationRequestForm({ initialCategory }: { initialCategory?: str
     birthDate: "",
     city: "",
     country: "",
-    amount: "",
+    amount: fixedAmount !== null ? String(fixedAmount) : "",
     description: "",
     consent: false,
   });
@@ -127,6 +134,7 @@ export function DonationRequestForm({ initialCategory }: { initialCategory?: str
   const previousStep = () => setCurrentStep((step) => Math.max(step - 1, 0));
 
   const handleChange = (field: string, value: string | boolean) => {
+    if (field === "amount" && fixedAmount !== null) return;
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -141,6 +149,7 @@ export function DonationRequestForm({ initialCategory }: { initialCategory?: str
 
     try {
       const currentApplicant = await refreshApplicant();
+      const amountRequested = fixedAmount !== null ? String(fixedAmount) : form.amount;
       const { id } = await createApplication({
         kind: "Don",
         fullName: form.fullName || currentApplicant.name,
@@ -149,7 +158,7 @@ export function DonationRequestForm({ initialCategory }: { initialCategory?: str
         city: form.city,
         country: form.country,
         subject: initialCategoryLabel,
-        amountRequested: form.amount,
+        amountRequested,
         details: `Date de naissance : ${form.birthDate}\n${form.description}`,
         documents: [],
       });
@@ -290,7 +299,17 @@ export function DonationRequestForm({ initialCategory }: { initialCategory?: str
                 <div className="form-grid">
                   <label className="field wide">
                     <span>Monto solicitado ($)</span>
-                    <input type="number" min="1" step="0.01" value={form.amount} onChange={(event) => handleChange("amount", event.target.value)} required />
+                    <input
+                      type="number"
+                      min="1"
+                      step="0.01"
+                      value={form.amount}
+                      onChange={(event) => handleChange("amount", event.target.value)}
+                      required
+                      readOnly={fixedAmount !== null}
+                      disabled={fixedAmount !== null}
+                    />
+                    {fixedAmount !== null ? <small className="field-hint">Le montant est fixé par l’administration pour cette catégorie et ne peut pas être modifié.</small> : null}
                   </label>
 
                   <label className="field wide">

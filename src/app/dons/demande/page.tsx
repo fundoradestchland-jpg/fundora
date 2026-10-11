@@ -1,5 +1,6 @@
 import { DonationRequestForm } from "@/components/donation-request-form";
 import { donationCategories } from "@/lib/donation-categories";
+import { listPublicDonationCampaigns } from "@/lib/public-data";
 
 export default async function DonationRequestPage({
   searchParams,
@@ -8,5 +9,10 @@ export default async function DonationRequestPage({
 }) {
   const { categorie } = await searchParams;
   const initialCategory = donationCategories.find((category) => category.value === categorie)?.value;
-  return <DonationRequestForm initialCategory={initialCategory} />;
+  const campaigns = initialCategory ? await listPublicDonationCampaigns(initialCategory) : [];
+  const campaignAmount = initialCategory
+    ? campaigns.find((campaign) => campaign.categories.includes(initialCategory))?.targetAmount
+    : undefined;
+
+  return <DonationRequestForm initialCategory={initialCategory} initialAmount={campaignAmount} />;
 }

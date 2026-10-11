@@ -25,9 +25,9 @@ export function AssignedTasksNotice() {
             : `Tienes ${pendingTasks.length} tareas pendientes`}
         </strong>
         <span>
-          {pendingTasks.some(({ task }) => task.status === "Por hacer" || task.status === "A corregir")
-            ? "Se espera una acción en tu expediente."
-            : "Consulta el estado de las tareas enviadas a la administración."}
+          {pendingTasks.some(({ task }) => task.status === "À faire" || task.status === "À corriger")
+            ? "Une action est attendue sur votre dossier."
+            : "Consultez le statut des tâches envoyées à l’administration."}
         </span>
       </div>
       <Link href="#demandes">
