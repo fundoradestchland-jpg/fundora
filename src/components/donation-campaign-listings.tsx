@@ -29,13 +29,13 @@ export function DonationCampaignListings({
     <section className="published-campaigns" aria-labelledby="published-campaigns-title">
       <div className="published-campaigns-heading">
         <div>
-          <span className="eyebrow">Campagnes de l’administration</span>
-          <h2 id="published-campaigns-title">Trouvez le domaine qui vous correspond</h2>
+          <span className="eyebrow">Campañas de la administración</span>
+          <h2 id="published-campaigns-title">Encuentra el área que mejor se adapta a ti</h2>
         </div>
-        <Link href="/dons/demande" className="secondary-button small">Faire une demande</Link>
+        <Link href="/dons/demande" className="secondary-button small">Enviar una solicitud</Link>
       </div>
-      <nav className="campaign-category-filters" aria-label="Filtrer les campagnes par catégorie">
-        <Link href="/dons" className={!selectedCategory ? "active" : ""}>Tous les domaines</Link>
+      <nav className="campaign-category-filters" aria-label="Filtrar campañas por categoría">
+        <Link href="/dons" className={!selectedCategory ? "active" : ""}>Todas las categorías</Link>
         {donationCategories.map((category) => (
           <Link
             key={category.value}
@@ -47,9 +47,9 @@ export function DonationCampaignListings({
         ))}
       </nav>
       {unavailable ? (
-        <p className="campaigns-empty" role="status">Les campagnes de dons sont temporairement indisponibles. Veuillez réessayer dans quelques instants.</p>
+        <p className="campaigns-empty" role="status">Las campañas de donación no están disponibles temporalmente. Inténtalo de nuevo en unos momentos.</p>
       ) : campaigns.length === 0 ? (
-        <p className="campaigns-empty">Aucune campagne publiée dans ce domaine pour le moment.</p>
+        <p className="campaigns-empty">Todavía no hay campañas publicadas en esta categoría.</p>
       ) : (
         <div className="donation-grid">
           {campaigns.map((campaign) => (
@@ -63,7 +63,7 @@ export function DonationCampaignListings({
               <h3>{campaign.title}</h3>
               <div className="meta-row">
                 <div className="meta-box">
-                  <span>Montant de la campagne</span>
+                  <span>Meta de la campaña</span>
                   <strong>{formatDollars(campaign.targetAmount, 2, 2)}</strong>
                 </div>
               </div>
@@ -71,8 +71,8 @@ export function DonationCampaignListings({
                 <details className="campaign-description">
                   <summary>
                     <span className="campaign-description-preview">{getDescriptionPreview(campaign.description)}</span>
-                    <span className="campaign-description-more">Voir plus</span>
-                    <span className="campaign-description-less">Voir moins</span>
+                    <span className="campaign-description-more">Ver más</span>
+                    <span className="campaign-description-less">Ver menos</span>
                   </summary>
                   <p>{campaign.description}</p>
                 </details>
@@ -80,12 +80,12 @@ export function DonationCampaignListings({
                 <p>{campaign.description}</p>
               )}
               <div className="donation-footer">
-                <span className="status-badge available">Ouverte aux demandes</span>
+                <span className="status-badge available">Se aceptan solicitudes</span>
                 <Link
                   href={`/dons/demande?categorie=${campaign.categories[0]}`}
                   className="primary-button small"
                 >
-                  Choisir ce domaine
+                  Elegir esta categoría
                 </Link>
               </div>
             </article>

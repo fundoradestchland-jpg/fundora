@@ -1,12 +1,12 @@
 export const donationCategories = [
-  { value: "education", label: "Éducation" },
-  { value: "health", label: "Santé" },
-  { value: "housing", label: "Logement" },
-  { value: "food", label: "Alimentation" },
-  { value: "family-emergency", label: "Urgence familiale" },
-  { value: "mobility", label: "Mobilité" },
-  { value: "business", label: "Création d’activité" },
-  { value: "other", label: "Autre" },
+  { value: "education", label: "Educación" },
+  { value: "health", label: "Salud" },
+  { value: "housing", label: "Vivienda" },
+  { value: "food", label: "Alimentación" },
+  { value: "family-emergency", label: "Emergencia familiar" },
+  { value: "mobility", label: "Movilidad" },
+  { value: "business", label: "Emprendimiento" },
+  { value: "other", label: "Otros" },
 ] as const;
 
 export type DonationCategory = (typeof donationCategories)[number]["value"];
