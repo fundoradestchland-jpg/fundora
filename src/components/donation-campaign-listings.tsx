@@ -5,6 +5,7 @@ import {
   donationCategoryLabel,
   type DonationCategory,
 } from "@/lib/donation-categories";
+import { formatDollars } from "@/lib/format";
 import type { PublicDonationCampaign } from "@/lib/public-data";
 
 const descriptionPreviewLength = 180;
@@ -18,9 +19,11 @@ function getDescriptionPreview(description: string) {
 export function DonationCampaignListings({
   campaigns,
   selectedCategory,
+  unavailable = false,
 }: {
   campaigns: PublicDonationCampaign[];
   selectedCategory?: DonationCategory;
+  unavailable?: boolean;
 }) {
   return (
     <section className="published-campaigns" aria-labelledby="published-campaigns-title">
@@ -43,7 +46,9 @@ export function DonationCampaignListings({
           </Link>
         ))}
       </nav>
-      {campaigns.length === 0 ? (
+      {unavailable ? (
+        <p className="campaigns-empty" role="status">Les campagnes de dons sont temporairement indisponibles. Veuillez réessayer dans quelques instants.</p>
+      ) : campaigns.length === 0 ? (
         <p className="campaigns-empty">Aucune campagne publiée dans ce domaine pour le moment.</p>
       ) : (
         <div className="donation-grid">
@@ -59,7 +64,7 @@ export function DonationCampaignListings({
               <div className="meta-row">
                 <div className="meta-box">
                   <span>Montant de la campagne</span>
-                  <strong>{campaign.targetAmount.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €</strong>
+                  <strong>{formatDollars(campaign.targetAmount, 2, 2)}</strong>
                 </div>
               </div>
               {campaign.description.length > descriptionPreviewLength ? (

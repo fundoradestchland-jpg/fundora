@@ -17,21 +17,21 @@ export function AssignedTasksNotice() {
   if (pendingTasks.length === 0) return null;
 
   return (
-    <aside className="assigned-tasks-notice" aria-label="Tâches à suivre">
+    <aside className="assigned-tasks-notice" aria-label="Tareas pendientes">
       <div>
         <strong>
           {pendingTasks.length === 1
-            ? "Vous avez une tâche à suivre"
-            : `Vous avez ${pendingTasks.length} tâches à suivre`}
+            ? "Tienes una tarea pendiente"
+            : `Tienes ${pendingTasks.length} tareas pendientes`}
         </strong>
         <span>
-          {pendingTasks.some(({ task }) => task.status === "À faire" || task.status === "À corriger")
-            ? "Une action est attendue dans votre dossier."
-            : "Consultez l’état des tâches envoyées à l’administration."}
+          {pendingTasks.some(({ task }) => task.status === "Por hacer" || task.status === "A corregir")
+            ? "Se espera una acción en tu expediente."
+            : "Consulta el estado de las tareas enviadas a la administración."}
         </span>
       </div>
       <Link href="#demandes">
-        Voir mes tâches <span aria-hidden="true">→</span>
+        Ver mis tareas <span aria-hidden="true">→</span>
       </Link>
     </aside>
   );

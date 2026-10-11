@@ -1,4 +1,5 @@
 import { database } from "@/lib/db";
+import { retryTransientDatabaseRead } from "@/lib/db-retry";
 import type { DonationCategory } from "@/lib/donation-categories";
 
 export type ApplicationKind = "donation" | "loan";
@@ -134,7 +135,7 @@ export async function listPublicApplications(kind: ApplicationKind, status?: App
 
 export async function listPublicDonationCampaigns(category?: DonationCategory) {
   try {
-    const result = await database.query(
+    const result = await retryTransientDatabaseRead(() => database.query(
       `SELECT id, title, categories, target_amount, description, image_file_name,
               image_content_type, image_data, created_at
        FROM fundora_donation_campaigns
@@ -142,7 +143,7 @@ export async function listPublicDonationCampaigns(category?: DonationCategory) {
        ORDER BY created_at DESC
        LIMIT 100`,
       [category ?? null]
-    );
+    ));
     return result.rows.map((row) => ({
       id: String(row.id),
       title: String(row.title),
@@ -154,7 +155,7 @@ export async function listPublicDonationCampaigns(category?: DonationCategory) {
       createdAt: new Date(String(row.created_at)).toISOString(),
     })) satisfies PublicDonationCampaign[];
   } catch (error) {
-    console.error("Public donation campaigns query failed", (error as NodeJS.ErrnoException).code ?? "query_error");
+    console.error("Public donation campaigns query failed", error instanceof Error ? error.message : "query_error");
     throw new Error("Les campagnes de dons sont temporairement indisponibles.");
   }
 }

@@ -49,23 +49,23 @@ export function SiteNav({ current }: { current?: "home" | "pret" | "dons" | "das
 
   return (
     <nav className="topbar" aria-label="Navigation principale">
-      <Link href="/" className="brand" aria-label="Fundora">
+      <Link href="/" className="brand" aria-label="Fundación Amira Aldahab">
         <BrandGlyph />
       </Link>
       <div className="nav-links">
-        <Link href="/" aria-current={current === "home" ? "page" : undefined}>Accueil</Link>
-        <Link href="/pret" aria-current={current === "pret" ? "page" : undefined}>Prêts</Link>
-        <Link href="/dons" aria-current={current === "dons" ? "page" : undefined}>Dons</Link>
+        <Link href="/" aria-current={current === "home" ? "page" : undefined}>Inicio</Link>
+        <Link href="/pret" aria-current={current === "pret" ? "page" : undefined}>Préstamos</Link>
+        <Link href="/dons" aria-current={current === "dons" ? "page" : undefined}>Donaciones</Link>
         <Link href={accountHref} aria-current={current === "dashboard" || current === "admin" ? "page" : undefined}>
-          {checkingSession ? "Compte" : session?.role === "applicant" ? "Dashboard" : session?.role === "admin" ? "Administration" : "Connexion"}
+          {checkingSession ? "Cuenta" : session?.role === "applicant" ? "Panel" : session?.role === "admin" ? "Administración" : "Iniciar sesión"}
         </Link>
       </div>
       {session ? (
         <LogoutButton />
       ) : checkingSession ? (
-        <span className="nav-button" aria-live="polite">Vérification…</span>
+        <span className="nav-button" aria-live="polite">Verificando…</span>
       ) : (
-        <Link href="/login" className="nav-button">Créer un compte</Link>
+        <Link href="/login" className="nav-button">Crear cuenta</Link>
       )}
       {sessionError ? <span className="form-error" role="status">{sessionError}</span> : null}
     </nav>

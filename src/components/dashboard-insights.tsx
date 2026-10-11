@@ -2,16 +2,7 @@
 
 import { useMemo } from "react";
 import { useFundoraRequests } from "@/lib/request-api";
-
-const currency = new Intl.NumberFormat("fr-FR", {
-  style: "currency",
-  currency: "EUR",
-  maximumFractionDigits: 0,
-});
-
-function formatAmount(value: number) {
-  return currency.format(value);
-}
+import { formatDollars } from "@/lib/format";
 
 function statusClass(status: string) {
   if (status === "Validée") return "validee";
@@ -58,43 +49,43 @@ export function DashboardInsights() {
   }, [requests]);
 
   if (loading) {
-    return <section className="dashboard-insights"><div className="workflow-empty"><strong>Chargement de vos statistiques…</strong></div></section>;
+    return <section className="dashboard-insights"><div className="workflow-empty"><strong>Cargando tus estadísticas…</strong></div></section>;
   }
 
   if (error) {
-    return <section className="dashboard-insights"><div className="workflow-empty"><strong>Statistiques indisponibles</strong><span>{error}</span></div></section>;
+    return <section className="dashboard-insights"><div className="workflow-empty"><strong>Estadísticas no disponibles</strong><span>{error}</span></div></section>;
   }
 
   return (
     <section className="dashboard-insights" aria-labelledby="statistics-title">
       <header className="insights-heading">
         <div>
-          <span className="eyebrow">Données de vos demandes</span>
-          <h3 id="statistics-title">Votre activité Fundora</h3>
-          <p>Les montants sont calculés depuis vos dossiers enregistrés. Ils ne représentent pas un solde bancaire.</p>
+          <span className="eyebrow">Datos de tus solicitudes</span>
+          <h3 id="statistics-title">Tu actividad en Fundación Amira Aldahab</h3>
+          <p>Los importes se calculan a partir de tus expedientes registrados. No representan un saldo bancario.</p>
         </div>
       </header>
 
       <div className="insight-metrics">
         <article className="insight-metric">
-          <span>Dossiers déposés</span>
+          <span>Expedientes presentados</span>
           <strong>{requests.length}</strong>
-          <small>{statistics.donationCount} demande(s) de don · {statistics.loanCount} demande(s) de prêt</small>
+          <small>{statistics.donationCount} solicitud(es) de donación · {statistics.loanCount} solicitud(es) de préstamo</small>
         </article>
         <article className="insight-metric">
-          <span>Montant demandé</span>
-          <strong>{formatAmount(statistics.requestedAmount)}</strong>
-          <small>Total des montants demandés dans tous vos dossiers</small>
+          <span>Monto solicitado</span>
+          <strong>{formatDollars(statistics.requestedAmount)}</strong>
+          <small>Total de montos solicitados en todos tus expedientes</small>
         </article>
         <article className="insight-metric approved">
-          <span>Montant approuvé</span>
-          <strong>{formatAmount(statistics.approvedAmount)}</strong>
-          <small>{statistics.approvedCount} dossier(s) validé(s) par Fundora</small>
+          <span>Monto aprobado</span>
+          <strong>{formatDollars(statistics.approvedAmount)}</strong>
+          <small>{statistics.approvedCount} expediente(s) validado(s) por Fundación Amira Aldahab</small>
         </article>
         <article className="insight-metric pending">
-          <span>En cours d’examen</span>
+          <span>En revisión</span>
           <strong>{statistics.pendingCount}</strong>
-          <small>{statistics.refusedCount} dossier(s) refusé(s)</small>
+          <small>{statistics.refusedCount} expediente(s) rechazado(s)</small>
         </article>
       </div>
 
@@ -102,10 +93,10 @@ export function DashboardInsights() {
         <section className="panel activity-chart-panel" aria-labelledby="activity-chart-title">
           <div className="panel-header">
             <div>
-              <h3 id="activity-chart-title">Dossiers déposés</h3>
-              <p>Nombre de demandes créées, mois par mois</p>
+              <h3 id="activity-chart-title">Expedientes presentados</h3>
+              <p>Número de solicitudes creadas, mes a mes</p>
             </div>
-            <span>6 derniers mois</span>
+            <span>Últimos 6 meses</span>
           </div>
           <div className="activity-chart" role="img" aria-label="Nombre de dossiers créés pour chacun des six derniers mois">
             {statistics.months.map((month) => (
@@ -122,20 +113,20 @@ export function DashboardInsights() {
               </div>
             ))}
           </div>
-          {requests.length === 0 && <p className="chart-empty-note">Le graphique se remplira après le dépôt de votre première demande.</p>}
+          {requests.length === 0 && <p className="chart-empty-note">El gráfico se completará después de presentar tu primera solicitud.</p>}
         </section>
 
         <section className="panel status-overview-panel" aria-labelledby="status-overview-title">
           <div className="panel-header">
             <div>
-              <h3 id="status-overview-title">État des dossiers</h3>
-              <p>Répartition selon la dernière décision de Fundora</p>
+              <h3 id="status-overview-title">Estado de los expedientes</h3>
+              <p>Distribución según la última decisión de Fundación Amira Aldahab</p>
             </div>
           </div>
           <div className="status-overview-list">
-            <div><span className="status-overview-dot pending-dot" /><span>En attente</span><strong>{statistics.pendingCount}</strong></div>
-            <div><span className="status-overview-dot approved-dot" /><span>Validés</span><strong>{statistics.approvedCount}</strong></div>
-            <div><span className="status-overview-dot refused-dot" /><span>Refusés</span><strong>{statistics.refusedCount}</strong></div>
+            <div><span className="status-overview-dot pending-dot" /><span>Pendientes</span><strong>{statistics.pendingCount}</strong></div>
+            <div><span className="status-overview-dot approved-dot" /><span>Validados</span><strong>{statistics.approvedCount}</strong></div>
+            <div><span className="status-overview-dot refused-dot" /><span>Rechazados</span><strong>{statistics.refusedCount}</strong></div>
           </div>
         </section>
       </div>
@@ -143,20 +134,20 @@ export function DashboardInsights() {
       <section className="panel recent-applications-panel" aria-labelledby="recent-applications-title">
         <div className="panel-header">
           <div>
-            <h3 id="recent-applications-title">Dernières demandes</h3>
-            <p>Vos dossiers les plus récents</p>
+            <h3 id="recent-applications-title">Solicitudes recientes</h3>
+            <p>Tus expedientes más recientes</p>
           </div>
-          <span>{requests.length} au total</span>
+          <span>{requests.length} en total</span>
         </div>
         {statistics.recentRequests.length === 0 ? (
-          <p className="chart-empty-note">Aucun dossier enregistré pour le moment.</p>
+          <p className="chart-empty-note">No hay expedientes registrados por el momento.</p>
         ) : (
           <ul className="request-list">
             {statistics.recentRequests.map((request) => (
               <li key={request.id}>
                 <div>
                   <strong>{request.subject}</strong>
-                  <span>{request.kind} · {new Date(request.createdAt).toLocaleDateString("fr-FR")} · {formatAmount(Number(request.amountRequested) || 0)}</span>
+                  <span>{request.kind} · {new Date(request.createdAt).toLocaleDateString("es-ES")} · {formatDollars(Number(request.amountRequested) || 0)}</span>
                 </div>
                 <em className={`review-badge ${statusClass(request.status)}`}>{request.status}</em>
               </li>

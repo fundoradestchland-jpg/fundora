@@ -8,7 +8,7 @@ import { isSafeNextPath } from "@/lib/format";
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<main className="page-shell auth-page"><section className="auth-shell"><div className="auth-panel auth-form-panel"><h1>Chargement…</h1></div></section></main>}>
+    <Suspense fallback={<main className="page-shell auth-page"><section className="auth-shell"><div className="auth-panel auth-form-panel"><h1>Cargando…</h1></div></section></main>}>
       <LoginForm />
     </Suspense>
   );
@@ -38,7 +38,7 @@ function LoginForm() {
       .then(async (response) => {
         if (response.status === 401) return null;
         const result = await response.json();
-        if (!response.ok) throw new Error(result.error ?? "La vérification de session est indisponible.");
+        if (!response.ok) throw new Error(result.error ?? "La verificación de sesión no está disponible.");
         return result.user as { role: "admin" | "applicant"; user: string } | null;
       })
       .then((user) => {
@@ -51,7 +51,7 @@ function LoginForm() {
       })
       .catch((reason: unknown) => {
         if (active) {
-          setError(reason instanceof Error ? reason.message : "La vérification de session est indisponible.");
+          setError(reason instanceof Error ? reason.message : "La verificación de sesión no está disponible.");
           setCheckingSession(false);
         }
       });
@@ -63,7 +63,7 @@ function LoginForm() {
     setError("");
 
     if (mode === "register" && password !== confirmPassword) {
-      setError("Les deux mots de passe ne correspondent pas.");
+      setError("Las dos contraseñas no coinciden.");
       return;
     }
 
@@ -76,19 +76,19 @@ function LoginForm() {
         body: JSON.stringify({ email, password, fullName }),
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error ?? "Opération impossible.");
+      if (!response.ok) throw new Error(result.error ?? "Operación imposible.");
 
       try {
         localStorage.setItem("fundora_session", JSON.stringify(result.user));
       } catch (storageError) {
-        console.error("Session cache could not be saved", storageError);
+        console.error("No se pudo guardar la sesión en caché", storageError);
       }
       window.dispatchEvent(new Event("fundora-session-updated"));
 
       const destination = redirectPath ?? (result.user.role === "admin" ? "/admin/dossiers" : `/dashboard/${result.user.user}`);
       window.location.assign(destination);
     } catch (loginError) {
-      setError(loginError instanceof Error ? loginError.message : "Opération impossible.");
+      setError(loginError instanceof Error ? loginError.message : "Operación imposible.");
     } finally {
       setSubmitting(false);
     }
@@ -99,7 +99,7 @@ function LoginForm() {
       <main className="page-shell auth-page">
         <section className="auth-shell">
           <div className="auth-panel auth-form-panel">
-            <h1>Vérification de votre session…</h1>
+            <h1>Verificando tu sesión…</h1>
             {error ? <p className="auth-error" role="alert">{error}</p> : null}
           </div>
         </section>
@@ -110,65 +110,65 @@ function LoginForm() {
   return (
     <main className="page-shell auth-page">
       <section className="auth-shell">
-        <div className="auth-panel auth-visual" aria-label="Connexion Fundora">
-          <div className="auth-badge">Compte sécurisé</div>
+        <div className="auth-panel auth-visual" aria-label="Inicio de sesión Fundación Amira Aldahab">
+          <div className="auth-badge">Cuenta segura</div>
           <div className="auth-visual-copy">
-            <span className="eyebrow">Accès sécurisé</span>
-            <h2>Bienvenue sur Fundora</h2>
-            <p>Gérez vos demandes, vos dons et votre solde dans un espace client simple et fiable.</p>
+            <span className="eyebrow">Acceso seguro</span>
+            <h2>Bienvenido a Fundación Amira Aldahab</h2>
+            <p>Gestiona tus solicitudes, donaciones y saldo desde un espacio simple y fiable.</p>
           </div>
 
         </div>
 
         <div className="auth-panel auth-form-panel">
-          <div className="brand" aria-label="Fundora brand">
+          <div className="brand" aria-label="Fundación Amira Aldahab brand">
             <BrandGlyph />
           </div>
 
           <div className="auth-form-header">
-            <span className="eyebrow">{mode === "login" ? "Connexion" : "Inscription"}</span>
-            <h1>{mode === "login" ? "Accédez à votre espace." : "Créez votre compte Fundora."}</h1>
+            <span className="eyebrow">{mode === "login" ? "Iniciar sesión" : "Registro"}</span>
+            <h1>{mode === "login" ? "Accede a tu espacio." : "Crea tu cuenta en Fundación Amira Aldahab."}</h1>
           </div>
 
-          <div className="auth-mode-switch" role="group" aria-label="Choisir une action">
-            <button type="button" className={mode === "login" ? "active" : ""} onClick={() => { setMode("login"); setError(""); }}>Connexion</button>
-            <button type="button" className={mode === "register" ? "active" : ""} onClick={() => { setMode("register"); setError(""); }}>Inscription</button>
+          <div className="auth-mode-switch" role="group" aria-label="Elegir una acción">
+            <button type="button" className={mode === "login" ? "active" : ""} onClick={() => { setMode("login"); setError(""); }}>Iniciar sesión</button>
+            <button type="button" className={mode === "register" ? "active" : ""} onClick={() => { setMode("register"); setError(""); }}>Registrarse</button>
           </div>
 
           <form className="auth-form" onSubmit={handleSubmit}>
             {mode === "register" && (
               <label className="field">
-                <span>Nom complet</span>
-                <input type="text" autoComplete="name" value={fullName} onChange={(event) => setFullName(event.target.value)} placeholder="Votre nom complet" minLength={2} maxLength={200} required />
+                <span>Nombre completo</span>
+                <input type="text" autoComplete="name" value={fullName} onChange={(event) => setFullName(event.target.value)} placeholder="Tu nombre completo" minLength={2} maxLength={200} required />
               </label>
             )}
 
             <label className="field">
-              <span>E-mail</span>
+              <span>Correo electrónico</span>
               <input
                 type="email"
                 autoComplete="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder="nom@exemple.fr"
+                placeholder="nombre@ejemplo.com"
                 required
               />
             </label>
 
             <label className="field">
-              <span>Mot de passe</span>
+              <span>Contraseña</span>
               <div className="password-control">
-                <input type={showPassword ? "text" : "password"} autoComplete={mode === "login" ? "current-password" : "new-password"} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Au moins 8 caractères" minLength={mode === "register" ? 8 : undefined} required />
-                <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}>{showPassword ? "Masquer" : "Afficher"}</button>
+                <input type={showPassword ? "text" : "password"} autoComplete={mode === "login" ? "current-password" : "new-password"} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Al menos 8 caracteres" minLength={mode === "register" ? 8 : undefined} required />
+                <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}>{showPassword ? "Ocultar" : "Mostrar"}</button>
               </div>
             </label>
 
             {mode === "register" && (
               <label className="field">
-                <span>Confirmer le mot de passe</span>
+                <span>Confirmar contraseña</span>
                 <div className="password-control">
-                  <input type={showConfirmPassword ? "text" : "password"} autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Répétez le mot de passe" minLength={8} required />
-                  <button type="button" onClick={() => setShowConfirmPassword((visible) => !visible)} aria-label={showConfirmPassword ? "Masquer la confirmation" : "Afficher la confirmation"}>{showConfirmPassword ? "Masquer" : "Afficher"}</button>
+                  <input type={showConfirmPassword ? "text" : "password"} autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Repite la contraseña" minLength={8} required />
+                  <button type="button" onClick={() => setShowConfirmPassword((visible) => !visible)} aria-label={showConfirmPassword ? "Ocultar confirmación" : "Mostrar confirmación"}>{showConfirmPassword ? "Ocultar" : "Mostrar"}</button>
                 </div>
               </label>
             )}
@@ -176,26 +176,26 @@ function LoginForm() {
             <div className="login-options">
               <label className="remember-me">
                 <input type="checkbox" defaultChecked />
-                <span>Se souvenir de moi</span>
+                <span>Recordarme</span>
               </label>
-              <span>Accès administrateur ou demandeur</span>
+              <span>Acceso de administrador o solicitante</span>
             </div>
 
             {error ? <p className="auth-error">{error}</p> : null}
 
             <button type="submit" className="primary-button login-button" disabled={submitting}>
-              {submitting ? "Traitement…" : mode === "login" ? "Se connecter" : "Créer mon compte"}
+              {submitting ? "Procesando…" : mode === "login" ? "Iniciar sesión" : "Crear mi cuenta"}
             </button>
           </form>
 
           <div className="auth-meta">
-            <span>{mode === "login" ? "Pas encore inscrit ?" : "Déjà inscrit ?"}</span>
+            <span>{mode === "login" ? "¿Aún no tienes cuenta?" : "¿Ya tienes cuenta?"}</span>
             <button type="button" className="auth-mode-link" onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(""); }}>
-              {mode === "login" ? "Créer un compte" : "Se connecter"}
+              {mode === "login" ? "Crear cuenta" : "Iniciar sesión"}
             </button>
           </div>
           <div className="auth-meta">
-            <Link href="/">Retour à l’accueil</Link>
+            <Link href="/">Volver al inicio</Link>
           </div>
         </div>
       </section>

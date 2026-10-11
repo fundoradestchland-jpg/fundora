@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatEuro } from "@/lib/format";
+import { formatDollars } from "@/lib/format";
 import {
   listingVisual,
   publicStatusClass,
@@ -28,7 +28,7 @@ export function ApplicationListings({
     return (
       <section className="donation-grid">
         <article className="donation-card">
-          <span className="eyebrow">Données live</span>
+          <span className="eyebrow">Datos en vivo</span>
           <h3>{emptyTitle}</h3>
           <p>{emptyText}</p>
           <div className="donation-footer">
@@ -46,19 +46,19 @@ export function ApplicationListings({
         return (
           <article key={application.id} className="donation-card">
             <div className={`donation-visual ${listingVisual(index)}`} aria-hidden="true" />
-            <span className="eyebrow">{application.city || application.country ? `${application.city}${application.city && application.country ? ", " : ""}${application.country}` : "Fundora"}</span>
+            <span className="eyebrow">{application.city || application.country ? `${application.city}${application.city && application.country ? ", " : ""}${application.country}` : "Fundación Amira Aldahab"}</span>
             <h3>{application.subject}</h3>
             <div className="meta-row">
               <div className="meta-box">
-                <span>Demandé</span>
-                <strong>{formatEuro(application.amountRequested)}</strong>
+                <span>Solicitado</span>
+                <strong>{formatDollars(Number(application.amountRequested))}</strong>
               </div>
               <div className="meta-box">
-                <span>{kind === "donation" ? "Attribué à cette demande" : "Approuvé"}</span>
-                <strong>{approved ? formatEuro(application.amountApproved ?? 0) : "—"}</strong>
+                <span>{kind === "donation" ? "Asignado a esta solicitud" : "Aprobado"}</span>
+                <strong>{approved ? formatDollars(Number(application.amountApproved ?? 0)) : "—"}</strong>
               </div>
             </div>
-            <p>Les informations personnelles et les détails du dossier restent confidentiels.</p>
+            <p>La información personal y los detalles del expediente siguen siendo confidenciales.</p>
             <div className="donation-footer">
               <span className={`status-badge ${publicStatusClass(application.status)}`}>
                 {publicStatusLabel(application.status, kind)}
@@ -80,10 +80,10 @@ export function StatusFilters({
   current: ApplicationStatus | "all";
 }) {
   const options: Array<{ value: ApplicationStatus | "all"; label: string }> = [
-    { value: "all", label: "Tous" },
-    { value: "pending", label: "En examen" },
-    { value: "approved", label: kindPath === "/dons" ? "Attribués" : "Validés" },
-    { value: "rejected", label: "Refusés" },
+    { value: "all", label: "Todos" },
+    { value: "pending", label: "En revisión" },
+    { value: "approved", label: kindPath === "/dons" ? "Asignados" : "Validados" },
+    { value: "rejected", label: "Rechazados" },
   ];
 
   return (

@@ -13,15 +13,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Fundora Deutschland | Finanzierung & Spenden",
+  title: "Fundación Amira Aldahab | Financiación y Donaciones",
   description:
-    "Fundora verbindet Menschen, Finanzierungsmöglichkeiten und soziale Projekte – digital, transparent und sicher.",
+    "Fundación Amira Aldahab conecta a personas, oportunidades de financiación y proyectos sociales de forma simple y transparente.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
-      lang="en"
+      lang="es"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>

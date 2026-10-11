@@ -3,6 +3,8 @@ const transientCodes = new Set([
   "ETIMEDOUT",
   "ECONNREFUSED",
   "EHOSTUNREACH",
+  "EAI_AGAIN",
+  "ENOTFOUND",
   "57P01",
   "53300",
 ]);
@@ -10,7 +12,7 @@ const transientCodes = new Set([
 export function isTransientDatabaseError(error: unknown) {
   const code = (error as NodeJS.ErrnoException | null)?.code;
   const message = error instanceof Error ? error.message.toLowerCase() : "";
-  return transientCodes.has(code ?? "") || /timeout expired|connection terminated unexpectedly|server closed the connection unexpectedly/.test(message);
+  return transientCodes.has(code ?? "") || /timeout expired|connection timeout|connection terminated unexpectedly|server closed the connection unexpectedly/.test(message);
 }
 
 export async function retryTransientDatabaseRead<T>(operation: () => Promise<T>): Promise<T> {

@@ -94,13 +94,18 @@ export async function getSession(): Promise<FundoraSession | null> {
   }
   if (cookieSession.expiresAt < Date.now() || !cookieSession.userId) return null;
 
-  const result = await retryTransientDatabaseRead(() => database.query(
-    "SELECT id, email, full_name, role FROM fundora_users WHERE id = $1 LIMIT 1",
-    [cookieSession.userId]
-  ));
-  const user = result.rows[0] as StoredUser | undefined;
-  if (!user) return null;
-  return sessionFromUser(user, cookieSession.expiresAt);
+  try {
+    const result = await retryTransientDatabaseRead(() => database.query(
+      "SELECT id, email, full_name, role FROM fundora_users WHERE id = $1 LIMIT 1",
+      [cookieSession.userId]
+    ));
+    const user = result.rows[0] as StoredUser | undefined;
+    if (!user) return null;
+    return sessionFromUser(user, cookieSession.expiresAt);
+  } catch (error) {
+    console.error("Database session lookup failed", error instanceof Error ? error.message : error);
+    return null;
+  }
 }
 
 export async function setSessionCookie(session: FundoraSession) {

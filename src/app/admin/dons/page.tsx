@@ -7,6 +7,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { BrandGlyph } from "@/components/fundora-brand";
 import { SupportChat } from "@/components/support-chat";
 import { donationCategories, donationCategoryLabel } from "@/lib/donation-categories";
+import { formatDollars } from "@/lib/format";
 
 type DonationCampaign = {
   id: string;
@@ -166,8 +167,8 @@ export default function AdminDonationsPage() {
         <section className="auth-shell">
           <div className="auth-panel auth-form-panel">
             <div className="auth-form-header">
-              <span className="eyebrow">Espace sécurisé</span>
-              <h1>Vérification de l’accès admin…</h1>
+              <span className="eyebrow">Espacio seguro</span>
+              <h1>Verificando acceso de administrador…</h1>
             </div>
           </div>
         </section>
@@ -178,38 +179,38 @@ export default function AdminDonationsPage() {
   return (
     <main className="page-shell admin-donation-page">
       <SupportChat isAdmin />
-      <nav className="topbar" aria-label="Navigation admin">
-        <div className="brand" aria-label="Fundora brand">
+      <nav className="topbar" aria-label="Navegación admin">
+        <div className="brand" aria-label="Fundación Amira Aldahab brand">
           <BrandGlyph />
         </div>
         <div className="nav-links">
-          <Link href="/" >Accueil</Link>
-          <Link href="/dons">Dons publics</Link>
-          <Link href="/admin/dossiers">Demandes don / prêt</Link>
-          <Link href="/admin/finances">Soldes & retraits</Link>
+          <Link href="/">Inicio</Link>
+          <Link href="/dons">Donaciones públicas</Link>
+          <Link href="/admin/dossiers">Solicitudes de don / préstamo</Link>
+          <Link href="/admin/finances">Saldos y retiros</Link>
         </div>
-        <button type="button" className="nav-button" onClick={handleLogout}>Déconnexion</button>
+        <button type="button" className="nav-button" onClick={handleLogout}>Cerrar sesión</button>
       </nav>
 
       <section className="admin-donation-shell">
-        <span className="eyebrow">Administration · Publications</span>
-        <h1 className="admin-donation-title">Publier une campagne de don</h1>
-        <p className="admin-donation-intro">Choisissez les domaines concernés. Les demandeurs pourront parcourir les campagnes par catégorie sur la page des dons.</p>
+        <span className="eyebrow">Administración · Publicaciones</span>
+        <h1 className="admin-donation-title">Publicar una campaña de donación</h1>
+        <p className="admin-donation-intro">Selecciona los ámbitos implicados. Los solicitantes podrán explorar las campañas por categoría en la página de donaciones.</p>
 
         <div className="admin-layout">
           <form className="admin-form" onSubmit={publishCampaign}>
             <div className="section-title-row">
-              <h2>Nouvelle campagne</h2>
-              <span>Publication publique</span>
+              <h2>Nueva campaña</h2>
+              <span>Publicación pública</span>
             </div>
 
             <label className="field">
-              <span>Titre de la publication</span>
-              <input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={200} required placeholder="Ex. Soutien aux frais de scolarité" />
+              <span>Título de la publicación</span>
+              <input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={200} required placeholder="Ej. Apoyo a los gastos de escolaridad" />
             </label>
 
             <fieldset className="campaign-category-field">
-              <legend>Catégories concernées (plusieurs choix possibles)</legend>
+              <legend>Categorías implicadas (se pueden elegir varias)</legend>
               <div className="campaign-category-options">
                 {donationCategories.map((category) => (
                   <label key={category.value} className="campaign-category-option">
@@ -225,17 +226,17 @@ export default function AdminDonationsPage() {
             </fieldset>
 
             <label className="field">
-              <span>Montant de la campagne (€)</span>
-              <input type="number" min="0.01" max="999999999" step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} required placeholder="Ex. 2500" />
+              <span>Monto de la campaña ($)</span>
+              <input type="number" min="0.01" max="999999999" step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} required placeholder="Ej. 2500" />
             </label>
 
             <label className="field">
-              <span>Description</span>
-              <textarea value={description} onChange={(event) => setDescription(event.target.value)} maxLength={5000} required placeholder="Expliquez l’objectif de cette campagne de don." />
+              <span>Descripción</span>
+              <textarea value={description} onChange={(event) => setDescription(event.target.value)} maxLength={5000} required placeholder="Explica el objetivo de esta campaña de donación." />
             </label>
 
             <label className="field">
-              <span>Photo de la publication (JPG, PNG ou WebP · 2 Mo maximum)</span>
+              <span>Foto de la publicación (JPG, PNG o WebP · 2 MB máximo)</span>
               <input
                 ref={imageInputRef}
                 type="file"
@@ -244,22 +245,22 @@ export default function AdminDonationsPage() {
                 onChange={(event) => handleImageChange(event.target.files?.[0] ?? null)}
               />
             </label>
-            {imagePreview && <Image className="campaign-image-preview" src={imagePreview} alt="Aperçu de la photo à publier" width={1200} height={500} unoptimized />}
+            {imagePreview && <Image className="campaign-image-preview" src={imagePreview} alt="Vista previa de la foto a publicar" width={1200} height={500} unoptimized />}
 
             {error && <p className="form-error" role="alert">{error}</p>}
             {message && <p className="workflow-upload-feedback" role="status">{message}</p>}
             <button className="primary-button" type="submit" disabled={publishing}>
-              {publishing ? "Publication en cours…" : "Publier la campagne"}
+              {publishing ? "Publicando…" : "Publicar la campaña"}
             </button>
           </form>
 
           <aside className="admin-panel">
             <div className="section-title-row">
-              <h2>Campagnes publiées</h2>
-              <span>{campaigns.filter((campaign) => campaign.isPublished).length} en ligne</span>
+              <h2>Campañas publicadas</h2>
+              <span>{campaigns.filter((campaign) => campaign.isPublished).length} en línea</span>
             </div>
-            {loading ? <p>Chargement des publications…</p> : campaigns.length === 0 ? (
-              <p>Aucune campagne publiée pour le moment.</p>
+            {loading ? <p>Cargando publicaciones…</p> : campaigns.length === 0 ? (
+              <p>No hay campañas publicadas por el momento.</p>
             ) : (
               <div className="admin-campaign-list">
                 {campaigns.map((campaign) => (
@@ -267,12 +268,12 @@ export default function AdminDonationsPage() {
                     <Image src={campaign.imageDataUrl} alt="" width={176} height={176} unoptimized />
                     <div>
                       <strong>{campaign.title}</strong>
-                      <span>{campaign.targetAmount.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €</span>
+                      <span>{formatDollars(campaign.targetAmount, 2, 2)}</span>
                       <div className="campaign-category-badges">
                         {campaign.categories.map((category) => <small key={category}>{donationCategoryLabel(category)}</small>)}
                       </div>
                       <span className={campaign.isPublished ? "campaign-online" : "campaign-offline"}>
-                        {campaign.isPublished ? "En ligne" : "Non publiée"}
+                        {campaign.isPublished ? "En línea" : "No publicada"}
                       </span>
                     </div>
                   </article>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
 import { serializeFiles, type RequestDocument } from "@/lib/fundora-requests";
 import { createApplication } from "@/lib/request-api";
+import { formatDollars } from "@/lib/format";
 
 const steps = ["Profil", "Budget", "Documents", "Validation"];
 const requiredDocuments = [
@@ -13,8 +14,7 @@ const requiredDocuments = [
 ] as const;
 type LoanDocumentType = typeof requiredDocuments[number]["id"];
 const annualInterestRate = 0.02;
-const formatEuro = (value: string | number) =>
-  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(Number(value || 0));
+const formatMoney = (value: string | number) => formatDollars(Number(value || 0), 2, 2);
 
 type ApplicantSession = {
   email: string;
@@ -71,7 +71,7 @@ export default function LoanRequestPage() {
 
   const isLastStep = currentStep === steps.length - 1;
   const estimatedAmount = useMemo(() => {
-    return formatEuro(form.amount);
+    return formatMoney(form.amount);
   }, [form.amount]);
   const repaymentEstimate = useMemo(() => {
     const principal = Number(form.amount);
@@ -145,7 +145,7 @@ export default function LoanRequestPage() {
         country: form.country,
         subject: form.loanType,
         amountRequested: form.amount,
-        details: `Date de naissance : ${form.birthDate}\n${form.purpose}\nDurée : ${form.loanTerm} mois\nTaux annuel indicatif : 2 %\nMensualité estimée hors frais : ${repaymentEstimate ? formatEuro(repaymentEstimate.monthlyPayment) : "non calculée"}\nTotal à rembourser estimé : ${repaymentEstimate ? formatEuro(repaymentEstimate.totalRepayment) : "non calculé"}\nIntérêts estimés : ${repaymentEstimate ? formatEuro(repaymentEstimate.totalInterest) : "non calculés"}\nRevenu mensuel : ${formatEuro(form.monthlyIncome)}\nDocuments transmis : ${requiredDocuments.map(({ id, label }) => `${label} (${uploadedDocuments[id]?.name ?? ""})`).join(", ")}`,
+        details: `Date de naissance : ${form.birthDate}\n${form.purpose}\nDurée : ${form.loanTerm} mois\nTaux annuel indicatif : 2 %\nMensualité estimée hors frais : ${repaymentEstimate ? formatMoney(repaymentEstimate.monthlyPayment) : "non calculée"}\nTotal à rembourser estimé : ${repaymentEstimate ? formatMoney(repaymentEstimate.totalRepayment) : "non calculé"}\nIntérêts estimés : ${repaymentEstimate ? formatMoney(repaymentEstimate.totalInterest) : "non calculés"}\nRevenu mensuel : ${formatMoney(form.monthlyIncome)}\nDocuments transmis : ${requiredDocuments.map(({ id, label }) => `${label} (${uploadedDocuments[id]?.name ?? ""})`).join(", ")}`,
         documents: requiredDocuments.map(({ id, label }) => {
           const document = uploadedDocuments[id];
           if (!document) throw new Error(`Le document requis « ${label} » manque.`);
@@ -171,7 +171,7 @@ export default function LoanRequestPage() {
             <span className="eyebrow">Demande enregistrée</span>
             <h1>Votre demande de prêt a bien été soumise.</h1>
             <p>
-              {form.fullName}, votre dossier a bien été reçu par Fundora. L’équipe analysera vos
+              {form.fullName}, votre dossier a bien été reçu par Fundación Amira Aldahab. L’équipe analysera vos
               justificatifs, votre capacité de remboursement et votre besoin pour décider du montant,
               de la durée et des conditions du prêt.
             </p>
@@ -277,11 +277,11 @@ export default function LoanRequestPage() {
                   </select>
                 </label>
                 <label className="field">
-                  <span>Montant souhaité (€)</span>
+                  <span>Montant souhaité ($)</span>
                   <input type="number" min="1" step="0.01" value={form.amount} onChange={(e) => handleChange("amount", e.target.value)} required />
                 </label>
                 <label className="field">
-                  <span>Revenu mensuel (€)</span>
+                  <span>Revenu mensuel ($)</span>
                   <input type="number" min="0" step="0.01" value={form.monthlyIncome} onChange={(e) => handleChange("monthlyIncome", e.target.value)} required />
                 </label>
                 <label className="field">
@@ -306,15 +306,15 @@ export default function LoanRequestPage() {
                   <>
                     <div className="summary-row">
                       <span>Mensualité estimée</span>
-                      <strong>{formatEuro(repaymentEstimate.monthlyPayment)} / mois</strong>
+                      <strong>{formatMoney(repaymentEstimate.monthlyPayment)} / mois</strong>
                     </div>
                     <div className="summary-row">
                       <span>Montant total estimé</span>
-                      <strong>{formatEuro(repaymentEstimate.totalRepayment)}</strong>
+                      <strong>{formatMoney(repaymentEstimate.totalRepayment)}</strong>
                     </div>
                     <div className="summary-row">
                       <span>Intérêts estimés</span>
-                      <strong>{formatEuro(repaymentEstimate.totalInterest)}</strong>
+                      <strong>{formatMoney(repaymentEstimate.totalInterest)}</strong>
                     </div>
                   </>
                 ) : (
@@ -392,7 +392,7 @@ export default function LoanRequestPage() {
                 </div>
                 <div className="summary-row">
                   <span>Revenu mensuel</span>
-                  <strong>{formatEuro(form.monthlyIncome)}</strong>
+                  <strong>{formatMoney(form.monthlyIncome)}</strong>
                 </div>
                 <div className="summary-row">
                   <span>Durée</span>
@@ -404,11 +404,11 @@ export default function LoanRequestPage() {
                 </div>
                 <div className="summary-row">
                   <span>Mensualité estimée (hors frais)</span>
-                  <strong>{repaymentEstimate ? `${formatEuro(repaymentEstimate.monthlyPayment)} / mois` : "Non calculée"}</strong>
+                  <strong>{repaymentEstimate ? `${formatMoney(repaymentEstimate.monthlyPayment)} / mois` : "Non calculée"}</strong>
                 </div>
                 <div className="summary-row">
                   <span>Total à rembourser estimé</span>
-                  <strong>{repaymentEstimate ? formatEuro(repaymentEstimate.totalRepayment) : "Non calculé"}</strong>
+                  <strong>{repaymentEstimate ? formatMoney(repaymentEstimate.totalRepayment) : "Non calculé"}</strong>
                 </div>
                 <div className="summary-row">
                   <span>Pièce d’identité</span>
@@ -428,7 +428,7 @@ export default function LoanRequestPage() {
                 />
                 <span>
                   Je confirme que les informations sont exactes, que les documents joints sont
-                  authentiques et que je souhaite soumettre cette demande au traitement Fundora.
+                  authentiques et que je souhaite soumettre cette demande au traitement de Fundación Amira Aldahab.
                 </span>
               </label>
             </div>

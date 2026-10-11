@@ -2,8 +2,8 @@ import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
 
 const requiredDocuments = [
-  "Une pièce d’identité en cours de validité",
-  "Des relevés bancaires récents",
+  "Una identificación vigente",
+  "Extractos bancarios recientes",
 ];
 
 export default function LoanPage() {
@@ -12,49 +12,49 @@ export default function LoanPage() {
       <SiteNav current="pret" />
 
       <section className="donation-hero loan-application-hero">
-        <span className="eyebrow">Demande de prêt</span>
-        <h1>Présentez votre projet et faites votre demande de financement.</h1>
+        <span className="eyebrow">Solicitud de préstamo</span>
+        <h1>Presenta tu proyecto y haz tu solicitud de financiación.</h1>
         <p>
-          Complétez vos informations, indiquez votre besoin et joignez les justificatifs utiles.
-          L’équipe Fundora étudiera ensuite votre dossier et vous informera de la suite dans votre espace.
+          Completa tu información, indica tu necesidad y adjunta los documentos útiles.
+          El equipo de Fundación Amira Aldahab revisará tu expediente y te informará del siguiente paso en tu espacio.
         </p>
-        <Link href="/pret/demande" className="primary-button">Faire une demande de prêt</Link>
+        <Link href="/pret/demande" className="primary-button">Hacer una solicitud de préstamo</Link>
       </section>
 
-      <section className="loan-application-info" aria-label="Informations sur la demande de prêt">
+      <section className="loan-application-info" aria-label="Información sobre la solicitud de préstamo">
         <article className="panel loan-info-card">
-          <span className="eyebrow">Votre dossier</span>
-          <h2>Les informations à préparer</h2>
-          <p>Vous devrez indiquer votre identité et vos coordonnées, le montant souhaité, la durée souhaitée en mois, l’objet du prêt et votre situation financière.</p>
+          <span className="eyebrow">Tu expediente</span>
+          <h2>Información que debes preparar</h2>
+          <p>Deberás indicar tu identidad y datos de contacto, el monto solicitado, la duración en meses, el motivo del préstamo y tu situación financiera.</p>
         </article>
 
         <article className="panel loan-info-card">
-          <span className="eyebrow">Documents à joindre</span>
-          <h2>Documents obligatoires à joindre</h2>
+          <span className="eyebrow">Documentos a adjuntar</span>
+          <h2>Documentos obligatorios</h2>
           <ul>
             {requiredDocuments.map((document) => <li key={document}>{document}</li>)}
           </ul>
-          <p>Chaque document dispose de son propre emplacement dans le formulaire. Vous devrez joindre les deux pour envoyer votre demande.</p>
+          <p>Cada documento tiene su propio campo en el formulario. Deberás adjuntar los dos para enviar tu solicitud.</p>
         </article>
 
         <article className="panel loan-info-card">
-          <span className="eyebrow">Frais éventuels</span>
-          <h2>Une information avant tout engagement</h2>
+          <span className="eyebrow">Posibles gastos</span>
+          <h2>Información antes de comprometerse</h2>
           <p>
-            Certains documents ou démarches peuvent entraîner de petits frais. Le cas échéant,
-            leur montant et leur motif vous seront communiqués dans votre espace avant toute étape
-            concernée. Le dépôt de la demande ne déclenche aucun paiement automatique.
+            Algunos documentos o trámites pueden implicar pequeños gastos. En ese caso,
+            su importe y motivo te serán comunicados en tu espacio antes de cualquier paso relacionado.
+            El envío de la solicitud no activa ningún pago automático.
           </p>
         </article>
       </section>
 
       <section className="loan-application-next">
         <div>
-          <span className="eyebrow">Prêt à commencer ?</span>
-          <h2>Votre demande se fait en quelques étapes.</h2>
-          <p>Vous pourrez relire les informations et les documents avant de transmettre votre dossier.</p>
+          <span className="eyebrow">¿Listo para empezar?</span>
+          <h2>Tu solicitud se realiza en pocos pasos.</h2>
+          <p>Puedes revisar la información y los documentos antes de enviar tu expediente.</p>
         </div>
-        <Link href="/pret/demande" className="primary-button">Commencer ma demande</Link>
+        <Link href="/pret/demande" className="primary-button">Comenzar mi solicitud</Link>
       </section>
     </main>
   );

@@ -8,79 +8,79 @@ export const dynamic = "force-dynamic";
 
 const publicStories = [
   {
-    type: "Don",
-    tag: "Clôturé",
-    title: "Aide aux familles en urgence",
-    amount: "€1,2M",
-    text: "Campagne entièrement financée pour couvrir les frais médicaux, le loyer et les besoins essentiels de familles confrontées à des situations difficiles.",
+    type: "Donación",
+    tag: "Cerrado",
+    title: "Ayuda a familias en emergencia",
+    amount: "1,2M $",
+    text: "Campaña totalmente financiada para cubrir los gastos médicos, el alquiler y las necesidades esenciales de familias que atraviesan situaciones difíciles.",
   },
   {
-    type: "Prêt",
-    tag: "Validé",
-    title: "Expansion d’une petite entreprise",
-    amount: "€3,4M",
-    text: "Un prêt déjà accordé à un commerce local pour acheter du matériel, embaucher du personnel et consolider son activité commerciale.",
+    type: "Préstamo",
+    tag: "Validado",
+    title: "Expansión de una pequeña empresa",
+    amount: "3,4M $",
+    text: "Un préstamo ya concedido a un comercio local para comprar material, contratar personal y consolidar su actividad comercial.",
   },
   {
-    type: "Don",
-    tag: "Terminé",
-    title: "Soutien aux étudiants",
-    amount: "€860K",
-    text: "Aide financée pour des frais de scolarité, logement et ressources pédagogiques afin d’éviter l’abandon des études.",
+    type: "Donación",
+    tag: "Finalizado",
+    title: "Apoyo a estudiantes",
+    amount: "860K $",
+    text: "Ayuda financiada para matrícula, alojamiento y recursos educativos para evitar el abandono de los estudios.",
   },
   {
-    type: "Prêt",
-    tag: "Remboursé",
-    title: "Projet de mobilité durable",
-    amount: "€2,7M",
-    text: "Financement de véhicules électriques, installation de bornes et accompagnement d’une transition écologique déjà mise en place.",
+    type: "Préstamo",
+    tag: "Reembolsado",
+    title: "Proyecto de movilidad sostenible",
+    amount: "2,7M $",
+    text: "Financiamiento de vehículos eléctricos, instalación de estaciones y acompañamiento de una transición ecológica ya en marcha.",
   },
   {
-    type: "Don",
-    tag: "Réalisé",
-    title: "Aide aux personnes âgées",
-    amount: "€1,9M",
-    text: "Des dons collectés pour soutenir les soins, l’aide à domicile et les séjours essentiels des personnes les plus vulnérables.",
+    type: "Donación",
+    tag: "Realizado",
+    title: "Ayuda a personas mayores",
+    amount: "1,9M $",
+    text: "Donaciones reunidas para apoyar cuidados, ayuda a domicilio y estancias esenciales para las personas más vulnerables.",
   },
   {
-    type: "Prêt",
-    tag: "Déjà financé",
-    title: "Création d’une activité locale",
-    amount: "€5,6M",
-    text: "Financement de l’ouverture d’un commerce, d’un atelier de production et d’une structure de services pour la communauté locale.",
+    type: "Préstamo",
+    tag: "Ya financiado",
+    title: "Creación de una actividad local",
+    amount: "5,6M $",
+    text: "Financiamiento para la apertura de un comercio, taller de producción y estructura de servicios para la comunidad local.",
   },
 ];
 
 const testimonials = [
   {
     name: "Mariam A.",
-    role: "Bénéficiaire de don",
-    quote: "J’ai reçu un soutien concret au bon moment. Grâce à cette aide, ma famille a pu payer les factures urgentes et retrouver un peu de stabilité.",
+    role: "Beneficiaria de donación",
+    quote: "Recibí un apoyo concreto en el momento correcto. Gracias a esta ayuda, mi familia pudo pagar facturas urgentes y recuperar algo de estabilidad.",
   },
   {
     name: "Paul K.",
-    role: "Client financement",
-    quote: "Le prêt m’a permis de lancer mon projet et de sécuriser ma trésorerie. Le suivi était clair, simple et très professionnel.",
+    role: "Cliente de financiación",
+    quote: "El préstamo me permitió lanzar mi proyecto y asegurar mi flujo de caja. El seguimiento fue claro, simple y muy profesional.",
   },
   {
     name: "Sofia L.",
-    role: "Entrepreneuse",
-    quote: "La structure était transparente et le financement a aidé mon activité à démarrer sans blocage. Je recommande vraiment ce modèle.",
+    role: "Empresaria",
+    quote: "La estructura fue transparente y la financiación ayudó a mi actividad a arrancar sin bloqueos. Recomiendo este modelo sinceramente.",
   },
   {
     name: "Nicolas R.",
-    role: "Chef de petite entreprise",
-    quote: "Le financement m’a donné la marge pour acheter le matériel nécessaire et développer mon équipe. C’était une étape décisive.",
+    role: "Jefe de pequeña empresa",
+    quote: "La financiación me dio margen para comprar el material necesario y desarrollar mi equipo. Fue un paso decisivo.",
   },
   {
     name: "Amina D.",
-    role: "Étudiante aidée",
-    quote: "Le soutien a permis de couvrir mon logement et mes frais d’études. Sans cette aide, je n’aurais pas pu continuer mon parcours.",
+    role: "Estudiante apoyada",
+    quote: "El apoyo permitió cubrir mi vivienda y mis gastos de estudios. Sin esta ayuda, no habría podido continuar mi camino.",
   },
   {
     name: "Karim H.",
-    role: "Bénéficiaire de projet solidaire",
-    quote: "Tout était bien expliqué, humain et rapide. Cette aide a transformé une situation difficile en un vrai tournant positif.",
+    role: "Beneficiario de proyecto solidario",
+    quote: "Todo estaba bien explicado, humano y rápido. Esta ayuda transformó una situación difícil en un verdadero punto de inflexión positivo.",
   },
 ];
 
@@ -95,65 +95,65 @@ export default async function Home() {
         <div className="hero-content hero-split">
           <div className="hero-copy">
             <h1 className="hero-logo-heading">
-              <Image src="/fundora-logo.png" alt="Fundora" width={949} height={776} className="hero-brand-image" unoptimized />
+              <Image src="/logo2.jpeg" alt="Fundación Amira Aldahab" width={949} height={776} className="hero-brand-image" unoptimized />
             </h1>
-            <div className="subtitle-line">Financement. Connexion. Données réelles.</div>
+            <div className="subtitle-line">Financiación. Acceso. Datos reales.</div>
             <p>
-              Les publications publiques de l’équipe et les succès de la communauté sont affichés ici,
-              sans exposer les demandes individuelles des utilisateurs.
+              Las publicaciones públicas del equipo y los éxitos de la comunidad se muestran aquí,
+              sin exponer las solicitudes individuales de los usuarios.
             </p>
             <div className="feature-pills">
               <div className="pill-item">
-                <span className="pill-icon">€</span>
-                <span>Prêts<br />réussis</span>
+                <span className="pill-icon">$</span>
+                <span>Préstamos<br />exitosos</span>
               </div>
               <div className="pill-item">
                 <span className="pill-icon">♥</span>
-                <span>Dons<br />réalisés</span>
+                <span>Donaciones<br />realizadas</span>
               </div>
               <div className="pill-item">
                 <span className="pill-icon">✓</span>
-                <span>Projets<br />validés</span>
+                <span>Proyectos<br />validados</span>
               </div>
             </div>
             <div className="hero-actions" style={{ marginTop: 24, display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <Link className="primary-button" href={startHref}>{session ? "Ouvrir mon espace" : "Créer un compte"}</Link>
-              <Link className="secondary-button" href="/pret">Voir les prêts</Link>
+              <Link className="primary-button" href={startHref}>{session ? "Abrir mi espacio" : "Crear cuenta"}</Link>
+              <Link className="secondary-button" href="/pret">Ver préstamos</Link>
             </div>
           </div>
-          <div className="hero-visual" aria-label="Fundora">
+          <div className="hero-visual" aria-label="Fundación Amira Aldahab">
             <div className="country-flag">Deutschland</div>
             <div className="city-photo" />
           </div>
         </div>
       </section>
 
-      <section className="brand-showcase" aria-label="Fundora Brand">
+      <section className="brand-showcase" aria-label="Fundación Amira Aldahab Brand">
         <div className="brand-showcase-mark">
-          <span className="brand-showcase-shape">F</span>
+          <span className="brand-showcase-shape">A</span>
         </div>
-        <div className="brand-showcase-name">Fundora</div>
+        <div className="brand-showcase-name">Fundación Amira Aldahab</div>
       </section>
 
       <section className="feature-section stats-section" id="dashboard">
         <div className="stats-banner">
           <div className="stats-copy">
-            <span className="eyebrow">Impact réel</span>
-            <h2>Des campagnes déjà financées et des résultats visibles.</h2>
-            <p>Les chiffres ci-dessous reflètent des actions déjà réalisées et validées.</p>
+            <span className="eyebrow">Impact real</span>
+            <h2>Campañas ya financiadas y resultados visibles.</h2>
+            <p>Las cifras que siguen reflejan acciones ya realizadas y validadas.</p>
           </div>
           <div className="stats-metrics">
             <div className="metric-box">
               <strong>124</strong>
-              <span>Campagnes clôturées</span>
+              <span>Campañas cerradas</span>
             </div>
             <div className="metric-box">
-              <strong>€18,4M</strong>
-              <span>Montants déjà mobilisés</span>
+              <strong>18,4M $</strong>
+              <span>Montos ya movilizados</span>
             </div>
             <div className="metric-box">
               <strong>96%</strong>
-              <span>Personnes satisfaites</span>
+              <span>Personas satisfechas</span>
             </div>
           </div>
         </div>
@@ -161,32 +161,32 @@ export default async function Home() {
 
       <section className="feature-section process-section">
         <div className="section-heading">
-          <span className="eyebrow">Comment ça marche</span>
-          <h2>Un compte, un dossier, une décision enregistrée.</h2>
+          <span className="eyebrow">Cómo funciona</span>
+          <h2>Una cuenta, un expediente y una decisión registrada.</h2>
         </div>
         <div className="process-grid">
           <div className="process-card">
             <div className="process-number">01</div>
-            <h3>Créer un compte</h3>
-            <p>L’inscription écrit un utilisateur dans fundora_users. La connexion vérifie le mot de passe haché en base.</p>
+            <h3>Crear una cuenta</h3>
+            <p>El registro crea un usuario en fundora_users. El inicio de sesión verifica la contraseña cifrada en la base de datos.</p>
           </div>
           <div className="process-card">
             <div className="process-number">02</div>
-            <h3>Déposer un dossier</h3>
-            <p>Prêt ou don : les informations et les pièces sont stockées dans PostgreSQL, pas dans le navigateur.</p>
+            <h3>Presentar un expediente</h3>
+            <p>Préstamo o donación: la información y los documentos se almacenan en PostgreSQL, no en el navegador.</p>
           </div>
           <div className="process-card">
             <div className="process-number">03</div>
-            <h3>Suivre la décision</h3>
-            <p>L’équipe valide ou refuse le dossier. Le statut public et votre espace personnel se mettent à jour.</p>
+            <h3>Seguir la decisión</h3>
+            <p>El equipo valida o rechaza el expediente. El estado público y tu espacio personal se actualizan.</p>
           </div>
         </div>
       </section>
 
       <section className="feature-section">
         <div className="section-heading">
-          <span className="eyebrow">Dons et prêts déjà réalisés</span>
-          <h2>Des campagnes et financements déjà clôturés, avec des résultats concrets.</h2>
+          <span className="eyebrow">Donaciones y préstamos ya realizados</span>
+          <h2>Campañas y financiaciones ya cerradas, con resultados concretos.</h2>
         </div>
         <div className="story-grid">
           {publicStories.map((story) => (
@@ -205,8 +205,8 @@ export default async function Home() {
 
       <section className="feature-section">
         <div className="section-heading">
-          <span className="eyebrow">Témoignages</span>
-          <h2>Des personnes satisfaites par les dons, les prêts et le soutien reçu.</h2>
+          <span className="eyebrow">Testimonios</span>
+          <h2>Personas satisfechas con las donaciones, préstamos y apoyo recibido.</h2>
         </div>
         <div className="testimonial-grid">
           {testimonials.map((item) => (
@@ -225,17 +225,17 @@ export default async function Home() {
       <section className="feature-section" id="contact">
         <div className="cta-panel">
           <div>
-            <span className="eyebrow">Démarrer</span>
-            <h2>Prêt à déposer un vrai dossier sur Fundora ?</h2>
+            <span className="eyebrow">Comenzar</span>
+            <h2>¿Listo para presentar un expediente real en Fundación Amira Aldahab?</h2>
           </div>
           <Link className="primary-button" href={startHref}>
-            {session ? "Aller à mon espace" : "S’inscrire"}
+            {session ? "Ir a mi espacio" : "Registrarme"}
           </Link>
         </div>
       </section>
 
       <footer className="site-footer">
-        <div className="brand footer-brand" aria-label="Fundora">
+        <div className="brand footer-brand" aria-label="Fundación Amira Aldahab">
           <BrandGlyph />
         </div>
       </footer>

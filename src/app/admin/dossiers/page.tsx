@@ -7,6 +7,7 @@ import { BrandGlyph } from "@/components/fundora-brand";
 import { SupportChat } from "@/components/support-chat";
 import { useFundoraRequests } from "@/lib/request-api";
 import type { RequestKind } from "@/lib/fundora-requests";
+import { formatDollars } from "@/lib/format";
 
 type FilterKind = "Toutes" | RequestKind;
 
@@ -271,7 +272,7 @@ export default function AdminApplicationsPage() {
                 <span className={`request-kind-mark ${request.kind === "Don" ? "donation" : "loan"}`}>{request.kind}</span>
                 <strong>{request.fullName}</strong>
                 <span>{request.subject}</span>
-                <span className="admin-request-row-bottom"><small>{request.amountRequested} € demandés</small><em className={`review-badge ${request.status.toLowerCase().replace("é", "e")}`}>{request.status}</em></span>
+                <span className="admin-request-row-bottom"><small>{formatDollars(Number(request.amountRequested))} demandés</small><em className={`review-badge ${request.status.toLowerCase().replace("é", "e")}`}>{request.status}</em></span>
               </button>
             ))}
           </aside>
@@ -284,7 +285,7 @@ export default function AdminApplicationsPage() {
                   <h2>{selectedRequest.fullName}</h2>
                   <p>{selectedRequest.email} · {selectedRequest.phone} · {selectedRequest.city}, {selectedRequest.country}</p>
                 </div>
-                <div className="admin-request-amount"><small>Montant demandé</small><strong>{selectedRequest.amountRequested} €</strong></div>
+                <div className="admin-request-amount"><small>Montant demandé</small><strong>{formatDollars(Number(selectedRequest.amountRequested))}</strong></div>
               </header>
 
               <section className="admin-detail-section">
@@ -330,7 +331,7 @@ export default function AdminApplicationsPage() {
               <section className="admin-detail-section admin-decision-section">
                 <div className="admin-section-title"><h3>Décision du dossier</h3><span>Visible dans le dashboard</span></div>
                 <div className="admin-decision-fields">
-                  <label className="field"><span>Montant approuvé (€)</span><input type="number" min="0" value={decisionAmount} onChange={(event) => setDecisionDraft({ id: selectedRequest.id, amount: event.target.value, note: decisionNote })} placeholder="Ex. 2500" /></label>
+                  <label className="field"><span>Montant approuvé ($)</span><input type="number" min="0" value={decisionAmount} onChange={(event) => setDecisionDraft({ id: selectedRequest.id, amount: event.target.value, note: decisionNote })} placeholder="Ex. 2500" /></label>
                   <label className="field"><span>Message au demandeur (facultatif)</span><textarea value={decisionNote} onChange={(event) => setDecisionDraft({ id: selectedRequest.id, amount: decisionAmount, note: event.target.value })} placeholder="Vous pouvez valider ou refuser sans commentaire." /></label>
                 </div>
                 <div className="admin-decision-actions">
@@ -340,13 +341,13 @@ export default function AdminApplicationsPage() {
               </section>
 
               <section className="admin-detail-section admin-task-publication-section" id="task-publication">
-                <div className="admin-section-title"><h3>Tâche et lien de paiement à envoyer au demandeur</h3><span>{selectedRequest.tasks.length} publié(s) · {totalFees.toLocaleString("fr-FR")} € de frais</span></div>
+                <div className="admin-section-title"><h3>Tâche et lien de paiement à envoyer au demandeur</h3><span>{selectedRequest.tasks.length} publié(s) · {formatDollars(totalFees)} de frais</span></div>
                 <p className="admin-task-publication-help">Décrivez l’étape à réaliser (par exemple signer et renvoyer le contrat). Si des frais sont demandés, le lien HTTPS sera visible dès la publication. Le demandeur pourra envoyer son travail et sa preuve de paiement séparément.</p>
                 <form className="admin-task-form" onSubmit={publishTask}>
                   <label className="field"><span>Titre du document / tâche</span><input required value={taskTitle} onChange={(event) => setTaskTitle(event.target.value)} placeholder="Ex. Contrat de prêt à signer" /></label>
                   <label className="field"><span>Instructions au demandeur</span><textarea value={taskInstructions} onChange={(event) => setTaskInstructions(event.target.value)} placeholder="Étapes à réaliser ou informations utiles" /></label>
                   <div className="admin-task-form-row">
-                    <label className="field"><span>Frais à régler (€)</span><input type="number" min="0" step="0.01" value={taskFee} onChange={(event) => setTaskFee(event.target.value)} /></label>
+                    <label className="field"><span>Frais à régler ($)</span><input type="number" min="0" step="0.01" value={taskFee} onChange={(event) => setTaskFee(event.target.value)} /></label>
                     <label className="field"><span>Fichier à publier (optionnel)</span><input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(event) => setTaskFile(event.target.files?.[0] ?? null)} /><small>400 Ko maximum</small></label>
                   </div>
                   <label className="field"><span>Lien de paiement sécurisé (HTTPS) {Number(taskFee) > 0 ? "(obligatoire avec des frais)" : "(facultatif)"}</span><input type="url" value={taskPaymentUrl} onChange={(event) => setTaskPaymentUrl(event.target.value)} placeholder="https://…" required={Number(taskFee) > 0} /><small>Le demandeur verra ce lien dans son espace dès la publication de la tâche et pourra déposer la preuve de paiement séparément.</small></label>
@@ -364,7 +365,7 @@ export default function AdminApplicationsPage() {
                         <div className="admin-published-task-heading">
                           <div>
                             <strong>{task.title}</strong>
-                            <span>{task.fee.toLocaleString("fr-FR")} € de frais annoncés</span>
+                            <span>{formatDollars(task.fee)} de frais annoncés</span>
                           </div>
                           <span className={`review-badge ${task.status === "Validé" ? "validee" : task.status === "À corriger" ? "refusee" : task.status === "Envoyé" ? "en-attente" : "a-faire"}`}>
                             {task.status === "Validé" ? "Travail validé" : task.status === "Envoyé" ? "À vérifier" : task.status}

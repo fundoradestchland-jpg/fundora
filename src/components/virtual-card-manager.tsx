@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { formatDollars } from "@/lib/format";
 
 type WithdrawalRecord = {
   id: string;
@@ -192,8 +193,7 @@ export function VirtualCardManager({
     }
   };
 
-  const formatMoney = (value: number) =>
-    new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(value || 0);
+  const formatMoney = (value: number) => formatDollars(value, 2, 2);
 
   const handleBackToDashboard = () => {
     router.push(dashboardHref);
@@ -272,7 +272,7 @@ export function VirtualCardManager({
             <h3 id="virtual-card-title">Créer ma carte virtuelle</h3>
             <p>Créez gratuitement votre carte. Son solde affichera uniquement les virements réellement enregistrés par l’administration.</p>
           </div>
-          <span className="virtual-card-free-label">Gratuite · 0 €</span>
+          <span className="virtual-card-free-label">Gratuite · 0 $</span>
         </header>
 
         <div className="virtual-card-create-panel" id="parametres">
@@ -318,7 +318,7 @@ export function VirtualCardManager({
           <h3 id="virtual-card-title">Ma carte virtuelle</h3>
           <p>Votre carte est active. Les réglages sont regroupés dans la section Paramètres générale.</p>
         </div>
-        <span className="virtual-card-free-label">Gratuite · 0 €</span>
+        <span className="virtual-card-free-label">Gratuite · 0 $</span>
       </header>
 
       <div className={`virtual-card-preview theme-${theme}`}>

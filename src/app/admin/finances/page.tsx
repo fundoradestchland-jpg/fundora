@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { BrandGlyph } from "@/components/fundora-brand";
 import { SupportChat } from "@/components/support-chat";
+import { formatDollars } from "@/lib/format";
 
 type FinanceUser = { id: string; name: string; email: string; cardId: string | null; balance: number };
 type PendingWithdrawal = {
@@ -22,7 +23,7 @@ type PendingWithdrawal = {
   mobileMoneyPhone: string;
 };
 
-const money = (amount: number) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(amount);
+const money = (amount: number) => formatDollars(amount, 2, 2);
 
 export default function AdminFinancesPage() {
   const router = useRouter();
@@ -116,65 +117,65 @@ export default function AdminFinancesPage() {
   };
 
   if (!authorized) {
-    return <main className="page-shell auth-page"><section className="auth-shell"><div className="auth-panel auth-form-panel"><h1>Vérification de l’accès admin…</h1>{error && <p className="form-error">{error}</p>}</div></section></main>;
+    return <main className="page-shell auth-page"><section className="auth-shell"><div className="auth-panel auth-form-panel"><h1>Verificando acceso de administrador…</h1>{error && <p className="form-error">{error}</p>}</div></section></main>;
   }
 
   return (
     <main className="page-shell admin-review-page">
       <SupportChat isAdmin />
-      <nav className="topbar" aria-label="Navigation admin">
+      <nav className="topbar" aria-label="Navegación admin">
         <div className="brand"><BrandGlyph /></div>
         <div className="nav-links">
-          <Link href="/admin/dons">Campagnes</Link>
-          <Link href="/admin/dossiers">Demandes</Link>
-          <Link href="/admin/finances" aria-current="page">Soldes & retraits</Link>
+          <Link href="/admin/dons">Campañas</Link>
+          <Link href="/admin/dossiers">Solicitudes</Link>
+          <Link href="/admin/finances" aria-current="page">Saldos y retiros</Link>
         </div>
-        <button className="nav-button" type="button" onClick={logout}>Déconnexion</button>
+        <button className="nav-button" type="button" onClick={logout}>Cerrar sesión</button>
       </nav>
 
       <section className="admin-review-shell">
         <header className="admin-review-heading">
-          <div><span className="eyebrow">Administration · Registre des mouvements</span><h1>Soldes et retraits</h1><p>Enregistrez uniquement les virements réellement effectués. Une référence ne peut créditer qu’une seule fois.</p></div>
-          <div className="admin-review-counter"><strong>{withdrawals.length}</strong><span>retrait(s) à traiter</span></div>
+          <div><span className="eyebrow">Administración · Registro de movimientos</span><h1>Saldos y retiros</h1><p>Registra únicamente los transferencias realmente realizadas. Una referencia no puede acreditar más de una vez.</p></div>
+          <div className="admin-review-counter"><strong>{withdrawals.length}</strong><span>retiro(s) por procesar</span></div>
         </header>
 
         <div className="admin-finance-grid">
           <section className="admin-request-detail admin-finance-panel">
-            <div className="admin-section-title"><h2>Enregistrer un virement reçu</h2></div>
+            <div className="admin-section-title"><h2>Registrar una transferencia recibida</h2></div>
             <form className="admin-task-form" onSubmit={registerTransfer}>
-              <label className="field"><span>Utilisateur</span>
+              <label className="field"><span>Usuario</span>
                 <select value={userId} onChange={(event) => setUserId(event.target.value)} required>
-                  <option value="">Choisir un compte</option>
-                  {users.map((user) => <option key={user.id} value={user.id} disabled={!user.cardId}>{user.name} · {user.email}{user.cardId ? ` · solde ${money(user.balance)}` : " · carte non créée"}</option>)}
+                  <option value="">Elegir una cuenta</option>
+                  {users.map((user) => <option key={user.id} value={user.id} disabled={!user.cardId}>{user.name} · {user.email}{user.cardId ? ` · saldo ${money(user.balance)}` : " · tarjeta no creada"}</option>)}
                 </select>
               </label>
               <div className="admin-task-form-row">
-                <label className="field"><span>Montant effectivement viré (€)</span><input type="number" min="0.01" step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} required /></label>
-                <label className="field"><span>Référence bancaire</span><input value={reference} onChange={(event) => setReference(event.target.value)} placeholder="Référence de transaction" required /></label>
+                <label className="field"><span>Monto efectivamente transferido ($)</span><input type="number" min="0.01" step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} required /></label>
+                <label className="field"><span>Referencia bancaria</span><input value={reference} onChange={(event) => setReference(event.target.value)} placeholder="Referencia de la transacción" required /></label>
               </div>
-              <label className="field"><span>Note interne (facultatif)</span><input value={note} onChange={(event) => setNote(event.target.value)} placeholder="Origine ou précision" /></label>
-              <button className="primary-button" type="submit" disabled={busy || !userId}>Enregistrer le virement</button>
+              <label className="field"><span>Nota interna (opcional)</span><input value={note} onChange={(event) => setNote(event.target.value)} placeholder="Origen o detalle" /></label>
+              <button className="primary-button" type="submit" disabled={busy || !userId}>Guardar transferencia</button>
             </form>
             <div className="admin-finance-balances">
-              <h3>Soldes actuels</h3>
+              <h3>Saldos actuales</h3>
               {users.filter((user) => user.cardId).map((user) => <div className="admin-finance-balance-row" key={user.id}><span>{user.name}<small>{user.email}</small></span><strong>{money(user.balance)}</strong></div>)}
-              {users.every((user) => !user.cardId) && <p className="admin-empty-inline">Aucune carte créée.</p>}
+              {users.every((user) => !user.cardId) && <p className="admin-empty-inline">No hay ninguna tarjeta creada.</p>}
             </div>
           </section>
 
           <section className="admin-request-detail admin-finance-panel">
-            <div className="admin-section-title"><h2>Demandes de retrait</h2><span>À traiter manuellement</span></div>
-            {withdrawals.length === 0 ? <p className="admin-empty-inline">Aucune demande en attente.</p> : withdrawals.map((item) => <article className="admin-finance-withdrawal" key={item.id}>
-              <div className="admin-finance-withdrawal-head"><div><strong>{item.name}</strong><small>{item.email} · bénéficiaire : {item.beneficiaryName}</small></div><strong>{money(item.amount)}</strong></div>
+            <div className="admin-section-title"><h2>Solicitudes de retiro</h2><span>Por procesar manualmente</span></div>
+            {withdrawals.length === 0 ? <p className="admin-empty-inline">No hay solicitudes pendientes.</p> : withdrawals.map((item) => <article className="admin-finance-withdrawal" key={item.id}>
+              <div className="admin-finance-withdrawal-head"><div><strong>{item.name}</strong><small>{item.email} · beneficiario: {item.beneficiaryName}</small></div><strong>{money(item.amount)}</strong></div>
               <dl>
-                <dt>Moyen</dt><dd>{item.method === "bank_transfer" ? "Virement bancaire" : item.method === "paypal" ? "PayPal" : "Mobile money"}</dd>
-                {item.method === "bank_transfer" && <><dt>Banque</dt><dd>{item.bankName}</dd><dt>IBAN / BIC</dt><dd>{item.iban} · {item.bic}</dd></>}
+                <dt>Método</dt><dd>{item.method === "bank_transfer" ? "Transferencia bancaria" : item.method === "paypal" ? "PayPal" : "Dinero móvil"}</dd>
+                {item.method === "bank_transfer" && <><dt>Banco</dt><dd>{item.bankName}</dd><dt>IBAN / BIC</dt><dd>{item.iban} · {item.bic}</dd></>}
                 {item.method === "paypal" && <><dt>PayPal</dt><dd>{item.paypalEmail}</dd></>}
-                {item.method === "mobile_money" && <><dt>Opérateur</dt><dd>{item.mobileMoneyProvider}</dd><dt>Téléphone</dt><dd>{item.mobileMoneyPhone}</dd></>}
+                {item.method === "mobile_money" && <><dt>Operador</dt><dd>{item.mobileMoneyProvider}</dd><dt>Teléfono</dt><dd>{item.mobileMoneyPhone}</dd></>}
               </dl>
               <div className="admin-finance-actions">
-                <button className="secondary-button" type="button" disabled={busy} onClick={() => void processWithdrawal(item.id, "rejected")}>Refuser et libérer le solde</button>
-                <button className="primary-button" type="button" disabled={busy} onClick={() => void processWithdrawal(item.id, "completed")}>Confirmer après virement</button>
+                <button className="secondary-button" type="button" disabled={busy} onClick={() => void processWithdrawal(item.id, "rejected")}>Rechazar y liberar saldo</button>
+                <button className="primary-button" type="button" disabled={busy} onClick={() => void processWithdrawal(item.id, "completed")}>Confirmar tras transferencia</button>
               </div>
             </article>)}
           </section>

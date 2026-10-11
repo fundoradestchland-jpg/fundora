@@ -133,10 +133,10 @@ export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
   return (
     <div className="support-chat">
       {isOpen && (
-        <section className="support-chat-window" aria-label="Messagerie Fundora">
+        <section className="support-chat-window" aria-label="Messagerie Fundación Amira Aldahab">
           <header className="support-chat-header">
             <div>
-              <strong>{isAdmin ? "Messagerie équipe" : "Contacter l’équipe Fundora"}</strong>
+              <strong>{isAdmin ? "Messagerie équipe" : "Contacter l’équipe Fundación Amira Aldahab"}</strong>
               <span>{isAdmin ? "Répondez aux demandeurs ou écrivez-leur." : "Échangez avec notre équipe au sujet de votre demande."}</span>
             </div>
             <button type="button" className="support-chat-close" onClick={() => setIsOpen(false)} aria-label="Fermer la messagerie">×</button>
@@ -175,7 +175,7 @@ export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
               const mine = item.sender_role === (isAdmin ? "admin" : "applicant");
               return (
                 <article className={`support-chat-message ${mine ? "mine" : "theirs"}`} key={item.id}>
-                  <span>{mine ? (isAdmin ? "Équipe Fundora" : "Vous") : (isAdmin ? item.sender_name : "Équipe Fundora")}</span>
+                  <span>{mine ? (isAdmin ? "Équipe Fundación Amira Aldahab" : "Vous") : (isAdmin ? item.sender_name : "Équipe Fundación Amira Aldahab")}</span>
                   <p>{item.message}</p>
                   <time dateTime={item.created_at}>{new Date(item.created_at).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}</time>
                 </article>

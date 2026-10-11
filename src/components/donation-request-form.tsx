@@ -3,22 +3,22 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
-import { serializeFiles, type RequestDocument } from "@/lib/fundora-requests";
 import { createApplication } from "@/lib/request-api";
 import { donationCategories } from "@/lib/donation-categories";
+import { formatDollars } from "@/lib/format";
 
 const steps = [
-  "Profil",
-  "Besoin",
-  "Documents",
-  "Validation",
+  "Perfil",
+  "Necesidad",
+  "Resumen",
+  "Validación",
 ];
 
 const stepDescriptions = [
-  "Quelques informations pour identifier et recontacter le demandeur.",
-  "Présentez votre situation et le soutien financier dont vous avez besoin.",
-  "Ajoutez les justificatifs utiles à l’étude de votre demande.",
-  "Vérifiez les informations avant de transmettre le dossier.",
+  "Algunas informaciones para identificar y contactar al solicitante.",
+  "Indica el monto exacto que necesitas y describe tu solicitud.",
+  "Revisa tu expediente antes de enviarlo.",
+  "Confirma la información y valida tu solicitud final.",
 ];
 
 type ApplicantSession = {
@@ -28,14 +28,6 @@ type ApplicantSession = {
   user: string;
 };
 
-const donationDocumentTypes = [
-  { value: "identity", label: "Pièce d’identité", description: "Carte d’identité, passeport ou titre de séjour." },
-  { value: "need", label: "Justificatif du besoin", description: "Facture, devis, certificat ou document lié à votre demande." },
-  { value: "income", label: "Justificatif de revenus", description: "Bulletin de salaire, attestation ou justificatif de ressources." },
-] as const;
-
-type UploadedDonationDocument = RequestDocument & { documentType: string };
-
 export function DonationRequestForm({ initialCategory }: { initialCategory?: string }) {
   const initialCategoryLabel = donationCategories.find((item) => item.value === initialCategory)?.label ?? "Éducation";
   const [currentStep, setCurrentStep] = useState(0);
@@ -43,7 +35,6 @@ export function DonationRequestForm({ initialCategory }: { initialCategory?: str
   const [reference, setReference] = useState("");
   const [applicant, setApplicant] = useState<ApplicantSession | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDonationDocument[]>([]);
   const [uploadError, setUploadError] = useState("");
   const [form, setForm] = useState({
     fullName: "",
@@ -52,28 +43,23 @@ export function DonationRequestForm({ initialCategory }: { initialCategory?: str
     birthDate: "",
     city: "",
     country: "",
-    requestType: initialCategoryLabel,
     amount: "",
-    monthlyIncome: "",
-    household: "",
-    urgency: "Normal",
     description: "",
-    project: "",
-    documents: "Pièce d’identité, justificatif du besoin et justificatif de revenus",
     consent: false,
   });
 
   const refreshApplicant = async () => {
     const response = await fetch("/api/auth/session", { cache: "no-store", credentials: "same-origin" });
     const result = await response.json();
+
     if (response.status === 401) {
-      throw new Error("Votre session n’est plus active. Reconnectez-vous à votre compte demandeur.");
+      throw new Error("Tu sesión ya no está activa. Vuelve a iniciar sesión con tu cuenta de solicitante.");
     }
     if (!response.ok) {
-      throw new Error(result.error ?? "Vérification du compte impossible. Réessayez.");
+      throw new Error(result.error ?? "No se pudo verificar la cuenta. Inténtalo de nuevo.");
     }
     if (result.user?.role !== "applicant") {
-      throw new Error("Connectez-vous à un compte demandeur pour envoyer cette demande.");
+      throw new Error("Inicia sesión con una cuenta de solicitante para enviar esta solicitud.");
     }
 
     const user = result.user as ApplicantSession;
@@ -93,13 +79,15 @@ export function DonationRequestForm({ initialCategory }: { initialCategory?: str
       void refreshApplicant().catch((reason: unknown) => {
         if (active) {
           setApplicant(null);
-          setUploadError(reason instanceof Error ? reason.message : "Vérification du compte impossible.");
+          setUploadError(reason instanceof Error ? reason.message : "No se pudo verificar la cuenta.");
         }
       });
     };
+
     checkApplicant();
     window.addEventListener("fundora-session-updated", checkApplicant);
     window.addEventListener("storage", checkApplicant);
+
     return () => {
       active = false;
       window.removeEventListener("fundora-session-updated", checkApplicant);
@@ -111,61 +99,46 @@ export function DonationRequestForm({ initialCategory }: { initialCategory?: str
 
   const nextStep = () => {
     setUploadError("");
+
     if (currentStep === 0 && (
       !form.fullName.trim() ||
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) ||
-      !form.phone.trim() || !form.birthDate.trim() || !form.city.trim() || !form.country.trim()
+      !form.phone.trim() ||
+      !form.birthDate.trim() ||
+      !form.city.trim() ||
+      !form.country.trim()
     )) {
-      setUploadError("Complétez toutes vos informations personnelles pour continuer.");
+      setUploadError("Completa toda tu información personal para continuar.");
       return;
     }
+
     if (currentStep === 1 && (
-      !form.description.trim() || !form.project.trim() || !form.household.trim() ||
-      !Number.isFinite(Number(form.amount)) || Number(form.amount) <= 0 ||
-      !Number.isFinite(Number(form.monthlyIncome)) || Number(form.monthlyIncome) < 0
+      !form.description.trim() ||
+      !Number.isFinite(Number(form.amount)) ||
+      Number(form.amount) <= 0
     )) {
-      setUploadError("Indiquez le montant demandé, votre revenu, votre situation et décrivez votre besoin.");
+      setUploadError("Indica el monto exacto solicitado y describe tu necesidad.");
       return;
     }
-    if (currentStep === 2 && uploadedDocuments.length === 0) {
-      setUploadError("Joignez au moins un justificatif pour votre demande.");
-      return;
-    }
+
     setCurrentStep((step) => Math.min(step + 1, steps.length - 1));
   };
+
   const previousStep = () => setCurrentStep((step) => Math.max(step - 1, 0));
 
   const handleChange = (field: string, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const removeDocument = (documentId: string) => {
-    setUploadedDocuments((current) => current.filter((document) => document.id !== documentId));
-  };
-
-  const handleDocumentUpload = async (documentType: string, files: FileList | null, input: HTMLInputElement) => {
-    if (!files?.length) return;
-    try {
-      const documents = await serializeFiles(files);
-      setUploadedDocuments((current) => [
-        ...current,
-        ...documents.map((document) => ({ ...document, documentType })),
-      ]);
-      setUploadError("");
-    } catch (error) {
-      setUploadError(error instanceof Error ? error.message : "Fichier illisible.");
-    } finally {
-      input.value = "";
-    }
-  };
-
   const handleSubmit = async () => {
     if (!form.consent) {
-      setUploadError("Confirmez l’exactitude des informations avant l’envoi.");
+      setUploadError("Confirma la exactitud de la información antes de enviar.");
       return;
     }
+
     setSubmitting(true);
     setUploadError("");
+
     try {
       const currentApplicant = await refreshApplicant();
       const { id } = await createApplication({
@@ -175,22 +148,17 @@ export function DonationRequestForm({ initialCategory }: { initialCategory?: str
         phone: form.phone,
         city: form.city,
         country: form.country,
-        subject: form.requestType,
+        subject: initialCategoryLabel,
         amountRequested: form.amount,
-        details: `Date de naissance : ${form.birthDate}\n${form.description}\nUtilisation : ${form.project}\nRevenu : ${form.monthlyIncome}\nSituation : ${form.household}\nUrgence : ${form.urgency}\nPièces attendues : ${form.documents}`,
-        documents: uploadedDocuments.map(({ id: documentId, name, size, dataUrl, documentType }) => ({
-          id: documentId,
-          name,
-          size,
-          dataUrl,
-          documentType,
-        })),
+        details: `Date de naissance : ${form.birthDate}\n${form.description}`,
+        documents: [],
       });
+
       setReference(id.slice(0, 8).toUpperCase());
       setSubmitted(true);
       window.dispatchEvent(new Event("fundora-requests-updated"));
     } catch (error) {
-      setUploadError(error instanceof Error ? error.message : "Le dossier n’a pas pu être enregistré.");
+      setUploadError(error instanceof Error ? error.message : "No se pudo guardar el expediente.");
     } finally {
       setSubmitting(false);
     }
@@ -203,35 +171,33 @@ export function DonationRequestForm({ initialCategory }: { initialCategory?: str
 
         <section className="donation-confirmation">
           <div className="confirmation-card success-card">
-            <span className="eyebrow">Demande validée</span>
-            <h1>Votre demande a bien été reçue.</h1>
+            <span className="eyebrow">Solicitud validada</span>
+            <h1>Tu solicitud ha sido recibida.</h1>
             <p>
-              La demande de {form.fullName} a été enregistrée dans le système Fundora. L’équipe va
-              vérifier les justificatifs, l’urgence du besoin et le profil du dossier pour décider du
-              montant exact à attribuer.
+              La solicitud de {form.fullName} ha sido registrada en el sistema de Fundación Amira Aldahab. El equipo revisará la necesidad, la urgencia y el perfil del expediente para decidir el monto exacto a otorgar.
             </p>
 
             <div className="confirmation-grid">
               <div className="confirmation-box">
-                <span>Référence</span>
+                <span>Referencia</span>
                 <strong>#{reference}</strong>
               </div>
               <div className="confirmation-box">
-                <span>Montant demandé</span>
-                <strong>{Number(form.amount).toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}</strong>
+                <span>Monto solicitado</span>
+                <strong>{formatDollars(Number(form.amount), 2, 2)}</strong>
               </div>
               <div className="confirmation-box">
-                <span>Statut</span>
-                <strong>En validation</strong>
+                <span>Estado</span>
+                <strong>En validación</strong>
               </div>
             </div>
 
             <div className="confirmation-actions">
               <Link href="/dons" className="secondary-button">
-                Voir les dons
+                Ver donaciones
               </Link>
               <Link href={applicant ? `/dashboard/${applicant.user}` : "/dashboard"} className="primary-button">
-                Accéder au dashboard
+                Ir al panel
               </Link>
             </div>
           </div>
@@ -246,20 +212,20 @@ export function DonationRequestForm({ initialCategory }: { initialCategory?: str
 
       <section className="request-flow-shell">
         <div className="request-flow-header">
-          <span className="eyebrow">Demande de don</span>
-          <h1>Votre demande de don</h1>
-          <p>Présentez votre besoin en quelques étapes. Vous pourrez vérifier votre dossier avant de l’envoyer.</p>
+          <span className="eyebrow">Solicitud de donación</span>
+          <h1>Tu solicitud de donación</h1>
+          <p>Presenta tu necesidad en unos pasos. Podrás revisar tu expediente antes de enviarlo.</p>
         </div>
 
         <div className="request-progress">
           <div className="request-progress-label">
-            <strong>Étape {currentStep + 1} sur {steps.length}</strong>
+            <strong>Paso {currentStep + 1} de {steps.length}</strong>
             <span>{steps[currentStep]}</span>
           </div>
-          <progress value={currentStep + 1} max={steps.length} aria-label={`Étape ${currentStep + 1} sur ${steps.length}`} />
+          <progress value={currentStep + 1} max={steps.length} aria-label={`Paso ${currentStep + 1} de ${steps.length}`} />
         </div>
 
-        <div className="stepper" role="list" aria-label="Étapes du formulaire">
+        <div className="stepper" role="list" aria-label="Pasos del formulario">
           {steps.map((step, index) => (
             <div
               key={step}
@@ -278,212 +244,147 @@ export function DonationRequestForm({ initialCategory }: { initialCategory?: str
             <div className="request-step-heading">
               <span className="request-step-count">0{currentStep + 1}</span>
               <div>
-                <h2>{currentStep === 0 ? "Vos informations" : currentStep === 1 ? "Votre situation" : currentStep === 2 ? "Vos justificatifs" : "Relire votre dossier"}</h2>
+                <h2>{currentStep === 0 ? "Tu información" : currentStep === 1 ? "Tu necesidad" : currentStep === 2 ? "Resumen" : "Validación final"}</h2>
                 <p>{stepDescriptions[currentStep]}</p>
               </div>
             </div>
-          {currentStep === 0 && (
-            <div className="request-step">
-              <div className="form-grid">
-                <label className="field">
-                  <span>Nom complet</span>
-                  <input autoComplete="name" value={form.fullName} onChange={(e) => handleChange("fullName", e.target.value)} required />
-                </label>
-                <label className="field">
-                  <span>Téléphone</span>
-                  <input type="tel" autoComplete="tel" value={form.phone} onChange={(e) => handleChange("phone", e.target.value)} required />
-                </label>
-                <label className="field">
-                  <span>E-mail</span>
-                  <input type="email" autoComplete="email" value={form.email} onChange={(e) => handleChange("email", e.target.value)} required />
-                </label>
-                <label className="field">
-                  <span>Date de naissance</span>
-                  <input type="date" autoComplete="bday" value={form.birthDate} onChange={(e) => handleChange("birthDate", e.target.value)} required />
-                </label>
-                <label className="field">
-                  <span>Ville</span>
-                  <input autoComplete="address-level2" value={form.city} onChange={(e) => handleChange("city", e.target.value)} required />
-                </label>
-                <label className="field">
-                  <span>Pays</span>
-                  <input autoComplete="country-name" value={form.country} onChange={(e) => handleChange("country", e.target.value)} required />
-                </label>
-              </div>
-            </div>
-          )}
 
-          {currentStep === 1 && (
-            <div className="request-step">
-              <div className="form-grid">
-                <label className="field">
-                  <span>Type de demande</span>
-                  <select value={form.requestType} onChange={(e) => handleChange("requestType", e.target.value)} required>
-                    {donationCategories.map((category) => (
-                      <option key={category.value} value={category.label}>{category.label}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="field">
-                  <span>Montant demandé (€)</span>
-                  <input type="number" min="1" step="0.01" value={form.amount} onChange={(e) => handleChange("amount", e.target.value)} required />
-                </label>
-                <label className="field">
-                  <span>Revenu mensuel (€)</span>
-                  <input type="number" min="0" step="0.01" value={form.monthlyIncome} onChange={(e) => handleChange("monthlyIncome", e.target.value)} required />
-                </label>
-                <label className="field">
-                  <span>Ménage / situation</span>
-                  <input value={form.household} onChange={(e) => handleChange("household", e.target.value)} required placeholder="Ex. personne seule, famille avec enfants…" />
-                </label>
-                <label className="field wide">
-                  <span>Décrivez votre besoin</span>
-                  <textarea
-                    value={form.description}
-                    onChange={(e) => handleChange("description", e.target.value)}
-                    required
-                    maxLength={5000}
-                    rows={5}
-                    placeholder="Expliquez votre situation, les difficultés rencontrées et pourquoi cette aide est importante."
-                  />
-                  <small className="field-hint">{form.description.length}/5 000 caractères</small>
-                </label>
-                <label className="field">
-                  <span>Niveau d’urgence</span>
-                  <select value={form.urgency} onChange={(e) => handleChange("urgency", e.target.value)}>
-                    <option>Très urgent</option>
-                    <option>Urgent</option>
-                    <option>Normal</option>
-                  </select>
-                </label>
-                <label className="field">
-                  <span>Utilisation du financement</span>
-                  <input value={form.project} onChange={(e) => handleChange("project", e.target.value)} required placeholder="Ex. frais de logement, soins, scolarité…" />
-                </label>
-              </div>
-            </div>
-          )}
+            {currentStep === 0 && (
+              <div className="request-step">
+                <div className="form-grid">
+                  <label className="field">
+                    <span>Nombre completo</span>
+                    <input autoComplete="name" value={form.fullName} onChange={(event) => handleChange("fullName", event.target.value)} required />
+                  </label>
 
-          {currentStep === 2 && (
-            <div className="request-step">
-              <div className="form-grid">
-                <div className="document-guidance field wide">
-                  <strong>Justificatifs conseillés</strong>
-                  <p>Ajoutez les documents correspondant à votre situation. Vous pouvez sélectionner plusieurs fichiers dans chaque espace.</p>
-                </div>
+                  <label className="field">
+                    <span>Teléfono</span>
+                    <input type="tel" autoComplete="tel" value={form.phone} onChange={(event) => handleChange("phone", event.target.value)} required />
+                  </label>
 
-                <div className="document-upload-grid field wide">
-                  {donationDocumentTypes.map((documentType) => {
-                    const documents = uploadedDocuments.filter((document) => document.documentType === documentType.value);
-                    return (
-                      <div className="document-upload-group" key={documentType.value}>
-                        <label className="document-upload-card">
-                          <span className="document-upload-heading">
-                            <strong>{documentType.label}</strong>
-                            <small>{documentType.description}</small>
-                          </span>
-                          <input
-                            className="document-upload-input"
-                            type="file"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            multiple
-                            aria-label={`Ajouter un ou plusieurs fichiers : ${documentType.label}`}
-                            onChange={(event) => {
-                              void handleDocumentUpload(documentType.value, event.target.files, event.target);
-                            }}
-                          />
-                          <small className="document-upload-hint">Cliquez pour choisir un ou plusieurs fichiers.</small>
-                        </label>
-                        {documents.length > 0 && (
-                          <ul className="uploaded-document-list" aria-label={`Fichiers ajoutés : ${documentType.label}`}>
-                            {documents.map((document) => (
-                              <li key={document.id}>
-                                <span>{document.name}</span>
-                                <button type="button" onClick={() => removeDocument(document.id)} aria-label={`Retirer ${document.name}`}>Retirer</button>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    );
-                  })}
-                  <small className="field-hint">PDF, JPG ou PNG, 400 Ko maximum par fichier. Ajoutez au moins un justificatif.</small>
+                  <label className="field">
+                    <span>Correo electrónico</span>
+                    <input type="email" autoComplete="email" value={form.email} onChange={(event) => handleChange("email", event.target.value)} required />
+                  </label>
+
+                  <label className="field">
+                    <span>Fecha de nacimiento</span>
+                    <input type="date" autoComplete="bday" value={form.birthDate} onChange={(event) => handleChange("birthDate", event.target.value)} required />
+                  </label>
+
+                  <label className="field">
+                    <span>Ciudad</span>
+                    <input autoComplete="address-level2" value={form.city} onChange={(event) => handleChange("city", event.target.value)} required />
+                  </label>
+
+                  <label className="field">
+                    <span>País</span>
+                    <input autoComplete="country-name" value={form.country} onChange={(event) => handleChange("country", event.target.value)} required />
+                  </label>
                 </div>
               </div>
-            </div>
-          )}
-
-          {currentStep === 3 && (
-            <div className="request-step">
-              <div className="summary-box">
-                <div className="summary-row">
-                  <span>Nom</span>
-                  <strong>{form.fullName}</strong>
-                </div>
-                <div className="summary-row">
-                  <span>Ville / Pays</span>
-                  <strong>{form.city}, {form.country}</strong>
-                </div>
-                <div className="summary-row">
-                  <span>Téléphone</span>
-                  <strong>{form.phone}</strong>
-                </div>
-                <div className="summary-row">
-                  <span>Type de besoin</span>
-                  <strong>{form.requestType}</strong>
-                </div>
-                <div className="summary-row">
-                  <span>Montant demandé (à étudier)</span>
-                  <strong>{Number(form.amount).toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}</strong>
-                </div>
-                <div className="summary-row">
-                  <span>Justificatifs joints</span>
-                  <strong>{uploadedDocuments.length} fichier{uploadedDocuments.length > 1 ? "s" : ""}</strong>
-                </div>
-              </div>
-
-              <label className="checkbox-row">
-                <input
-                  type="checkbox"
-                  checked={form.consent}
-                  onChange={(e) => handleChange("consent", e.target.checked)}
-                />
-                <span>Je confirme que les informations ci-dessus sont exactes et que les documents envoyés sont authentiques.</span>
-              </label>
-            </div>
-          )}
-
-          <div className="request-navigation">
-            <button className="secondary-button" onClick={previousStep} disabled={currentStep === 0} type="button">
-              Précédent
-            </button>
-
-            {isLastStep ? (
-              <button className="primary-button" onClick={handleSubmit} type="button" disabled={!form.consent || submitting}>
-                {submitting ? "Envoi en cours…" : "Valider la demande"}
-              </button>
-            ) : (
-              <button className="primary-button" onClick={nextStep} type="button">
-                Suivant
-              </button>
             )}
-          </div>
-          {!applicant && !uploadError ? <p className="form-error" role="status">Vérification du compte demandeur…</p> : null}
-          {uploadError ? <p className="form-error" role="alert">{uploadError}</p> : null}
+
+            {currentStep === 1 && (
+              <div className="request-step">
+                <div className="form-grid">
+                  <label className="field wide">
+                    <span>Monto solicitado ($)</span>
+                    <input type="number" min="1" step="0.01" value={form.amount} onChange={(event) => handleChange("amount", event.target.value)} required />
+                  </label>
+
+                  <label className="field wide">
+                    <span>Describe tu necesidad</span>
+                    <textarea
+                      value={form.description}
+                      onChange={(event) => handleChange("description", event.target.value)}
+                      required
+                      maxLength={5000}
+                      rows={5}
+                      placeholder="Explica tu situación, las dificultades encontradas y por qué esta ayuda es importante."
+                    />
+                    <small className="field-hint">{form.description.length}/5 000 caracteres</small>
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {currentStep === 2 && (
+              <div className="request-step">
+                <div className="summary-box">
+                  <div className="summary-row">
+                    <span>Nombre</span>
+                    <strong>{form.fullName}</strong>
+                  </div>
+                  <div className="summary-row">
+                    <span>Correo</span>
+                    <strong>{form.email}</strong>
+                  </div>
+                  <div className="summary-row">
+                    <span>Ciudad / País</span>
+                    <strong>{form.city}, {form.country}</strong>
+                  </div>
+                  <div className="summary-row">
+                    <span>Tipo de solicitud</span>
+                    <strong>{initialCategoryLabel}</strong>
+                  </div>
+                  <div className="summary-row">
+                    <span>Monto solicitado</span>
+                    <strong>{formatDollars(Number(form.amount), 2, 2)}</strong>
+                  </div>
+                  <div className="summary-row">
+                    <span>Necesidad</span>
+                    <strong>{form.description}</strong>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {currentStep === 3 && (
+              <div className="request-step">
+                <label className="checkbox-row">
+                  <input
+                    type="checkbox"
+                    checked={form.consent}
+                    onChange={(event) => handleChange("consent", event.target.checked)}
+                  />
+                  <span>Confirmo que la información anterior es exacta y que deseo enviar esta solicitud para validación.</span>
+                </label>
+              </div>
+            )}
+
+            <div className="request-navigation">
+              <button className="secondary-button" onClick={previousStep} disabled={currentStep === 0} type="button">
+                Anterior
+              </button>
+
+              {isLastStep ? (
+                <button className="primary-button" onClick={handleSubmit} type="button" disabled={!form.consent || submitting}>
+                  {submitting ? "Enviando…" : "Validar solicitud"}
+                </button>
+              ) : (
+                <button className="primary-button" onClick={nextStep} type="button">
+                  Siguiente
+                </button>
+              )}
+            </div>
+
+            {!applicant && !uploadError ? <p className="form-error" role="status">Verificando la cuenta del solicitante…</p> : null}
+            {uploadError ? <p className="form-error" role="alert">{uploadError}</p> : null}
           </div>
 
           <aside className="request-help-panel">
             <span className="request-help-icon" aria-hidden="true">i</span>
-            <h2>Un dossier clair facilite son étude</h2>
-            <p>Décrivez votre situation avec des informations exactes et joignez des pièces lisibles.</p>
+            <h2>Un expediente claro facilita su revisión</h2>
+            <p>Describe tu situación con información precisa e indica el monto exacto solicitado.</p>
             <ul>
-              <li><span aria-hidden="true">✓</span> Après l’envoi, le suivi est disponible dans votre espace.</li>
-              <li><span aria-hidden="true">✓</span> Vous pouvez revenir à l’étape précédente avant l’envoi.</li>
-              <li><span aria-hidden="true">✓</span> L’équipe examinera les informations et justificatifs transmis.</li>
+              <li><span aria-hidden="true">✓</span> Tras el envío, el seguimiento estará disponible en tu espacio.</li>
+              <li><span aria-hidden="true">✓</span> Puedes volver al paso anterior antes del envío.</li>
+              <li><span aria-hidden="true">✓</span> El equipo revisará la necesidad y el monto indicados.</li>
             </ul>
             <div className="request-help-note">
-              <strong>Besoin d’aide ?</strong>
-              <span>Vérifiez que vos coordonnées sont à jour et que chaque justificatif est lisible.</span>
+              <strong>¿Necesitas ayuda?</strong>
+              <span>Comprueba que tus datos estén actualizados y que el monto solicitado corresponda exactamente a tu necesidad.</span>
             </div>
           </aside>
         </div>

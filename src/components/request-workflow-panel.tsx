@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useFundoraRequests } from "@/lib/request-api";
+import { formatDollars } from "@/lib/format";
 
 export function RequestWorkflowPanel() {
   const [uploadFeedback, setUploadFeedback] = useState<Record<string, { message: string; isError: boolean }>>({});
@@ -20,7 +21,7 @@ export function RequestWorkflowPanel() {
           setUploadFeedback((current) => ({
             ...current,
             refresh: {
-              message: reason instanceof Error ? reason.message : "Actualisation des dossiers impossible.",
+              message: reason instanceof Error ? reason.message : "No se pudo actualizar la información.",
               isError: true,
             },
           }));
@@ -35,7 +36,7 @@ export function RequestWorkflowPanel() {
       setSelectedFiles((current) => ({ ...current, [key]: undefined }));
       setUploadFeedback((current) => ({
         ...current,
-        [key]: { message: "Le fichier doit faire 400 Ko maximum.", isError: true },
+        [key]: { message: "El archivo debe pesar como máximo 400 KB.", isError: true },
       }));
       return;
     }
@@ -53,7 +54,7 @@ export function RequestWorkflowPanel() {
     if (!file) {
       setUploadFeedback((current) => ({
         ...current,
-        [key]: { message: "Choisissez un fichier avant de l’envoyer.", isError: true },
+        [key]: { message: "Elige un archivo antes de enviarlo.", isError: true },
       }));
       return;
     }
@@ -64,7 +65,7 @@ export function RequestWorkflowPanel() {
       const dataUrl = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(String(reader.result));
-        reader.onerror = () => reject(new Error("Lecture du fichier impossible."));
+        reader.onerror = () => reject(new Error("No se pudo leer el archivo."));
         reader.readAsDataURL(file);
       });
       await mutate(requestId, operation, { taskId, file: { name: file.name, dataUrl } });
@@ -73,15 +74,15 @@ export function RequestWorkflowPanel() {
         ...current,
         [key]: {
           message: operation === "submit-task"
-            ? "Votre document de travail a été envoyé."
-            : "Votre preuve de paiement a été envoyée à l’administration.",
+            ? "Tu documento de trabajo ha sido enviado."
+            : "Tu comprobante de pago se ha enviado a la administración.",
           isError: false,
         },
       }));
     } catch (reason) {
       setUploadFeedback((current) => ({
         ...current,
-        [key]: { message: reason instanceof Error ? reason.message : "Envoi du fichier impossible.", isError: true },
+        [key]: { message: reason instanceof Error ? reason.message : "No se pudo enviar el archivo.", isError: true },
       }));
     } finally {
       setUploading("");
@@ -125,7 +126,7 @@ export function RequestWorkflowPanel() {
       ) : requests.length === 0 ? (
         <div className="workflow-empty">
           <strong>Aucun dossier reçu sur ce compte</strong>
-          <span>Une fois votre demande envoyée, son suivi et les documents publiés par Fundora apparaîtront ici.</span>
+          <span>Une fois votre demande envoyée, son suivi et les documents publiés par Fundación Amira Aldahab apparaîtront ici.</span>
         </div>
       ) : requests.map((request) => (
         <article className="workflow-request" key={request.id}>
@@ -139,8 +140,8 @@ export function RequestWorkflowPanel() {
           </header>
 
           <div className="workflow-amount-row">
-            <span>Montant demandé <strong>{request.amountRequested} €</strong></span>
-            {request.approvedAmount && <span>Montant approuvé <strong>{request.approvedAmount} €</strong></span>}
+            <span>Montant demandé <strong>{formatDollars(Number(request.amountRequested))}</strong></span>
+            {request.approvedAmount && <span>Montant approuvé <strong>{formatDollars(Number(request.approvedAmount))}</strong></span>}
           </div>
           {request.reviewNote && <p className="workflow-review-note">{request.reviewNote}</p>}
 
@@ -165,7 +166,7 @@ export function RequestWorkflowPanel() {
               {request.tasks.map((task) => (
                 <div className="workflow-task" key={task.id}>
                   <div className="workflow-task-heading">
-                    <div><strong>{task.title}</strong><span>{task.instructions || "Consultez le document et suivez les instructions de Fundora."}</span></div>
+                    <div><strong>{task.title}</strong><span>{task.instructions || "Consultez le document et suivez les instructions de Fundación Amira Aldahab."}</span></div>
                     <span className={`review-badge ${task.status === "Validé" ? "validee" : task.status === "À corriger" ? "refusee" : task.status === "Envoyé" ? "en-attente" : "a-faire"}`}>{task.status}</span>
                   </div>
                   {task.reviewNote && <small className="workflow-review-note">{task.reviewNote}</small>}
@@ -176,7 +177,7 @@ export function RequestWorkflowPanel() {
                       <a className="workflow-file-action" href={task.fileDataUrl} download={task.fileName}>Télécharger</a>
                     </div>
                   )}
-                  <div className="workflow-fee-row"><span>Frais annoncés</span><strong>{task.fee.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €</strong></div>
+                  <div className="workflow-fee-row"><span>Frais annoncés</span><strong>{formatDollars(task.fee, 2, 2)}</strong></div>
                   {(task.status === "À faire" || task.status === "À corriger") && (
                     <div className="workflow-upload-card">
                       <div className="workflow-upload-copy">
@@ -233,7 +234,7 @@ export function RequestWorkflowPanel() {
                       {task.paymentProofStatus === "Validé" ? (
                         <div className="workflow-payment-success" role="status">
                           <strong>Paiement validé par l’administration</strong>
-                          <span>Déjà payé · {task.fee.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €</span>
+                          <span>Déjà payé · {formatDollars(task.fee, 2, 2)}</span>
                         </div>
                       ) : task.paymentProofStatus === "À vérifier" ? (
                         <p className="workflow-payment-pending" role="status">
@@ -244,9 +245,9 @@ export function RequestWorkflowPanel() {
                           <strong>Étape 1 · Régler les frais</strong>
                           <p>Après le règlement, revenez ici pour envoyer votre reçu ou une capture de la confirmation.</p>
                           <a className="primary-button" href={task.paymentUrl} target="_blank" rel="noopener noreferrer">
-                            Payer {task.fee.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €
+                            Payer {formatDollars(task.fee, 2, 2)}
                           </a>
-                          <small>Le paiement est effectué par le prestataire externe. Fundora ne reçoit pas les données de votre carte via ce lien.</small>
+                          <small>Le paiement est effectué par le prestataire externe. Fundación Amira Aldahab ne reçoit pas les données de votre carte via ce lien.</small>
                           <strong>Étape 2 · Envoyer la preuve de paiement</strong>
                         </>
                       )}

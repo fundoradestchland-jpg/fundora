@@ -25,7 +25,7 @@ export default async function DashboardUserPage({
     <main className="page-shell dashboard-page">
       <SupportChat />
       <nav className="topbar" aria-label="Navigation du dashboard">
-        <div className="brand" aria-label="Fundora brand">
+        <div className="brand" aria-label="Fundación Amira Aldahab brand">
           <BrandGlyph />
         </div>
 

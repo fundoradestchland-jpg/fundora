@@ -1,11 +1,9 @@
-export const euro = new Intl.NumberFormat("fr-FR", {
-  style: "currency",
-  currency: "EUR",
-  maximumFractionDigits: 0,
-});
-
-export function formatEuro(value: number) {
-  return euro.format(Number.isFinite(value) ? value : 0);
+export function formatDollars(value: number, minimumFractionDigits = 0, maximumFractionDigits = 0) {
+  const formatted = new Intl.NumberFormat("fr-FR", {
+    minimumFractionDigits,
+    maximumFractionDigits,
+  }).format(Number.isFinite(value) ? value : 0);
+  return `${formatted} $`;
 }
 
 export function userSlug(email: string, id: string) {
